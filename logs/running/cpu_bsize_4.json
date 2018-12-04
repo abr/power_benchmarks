@@ -1,0 +1,1 @@
+{"hardware": "CPU", "start_time": "2018-09-15_20:21:44", "end_time": "2018-09-15_20:36:44", "n_copies": 1, "nx_neurons": 1, "n_seconds": 900, "n_inferences": 3557652, "inf_per_second": 3952.9466666666667, "batchsize": 4, "log_name": "cpu_bsize_4.json", "status": "Running"}

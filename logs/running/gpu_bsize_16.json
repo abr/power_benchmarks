@@ -1,0 +1,1 @@
+{"hardware": "GPU", "start_time": "2018-09-15_21:42:13", "end_time": "2018-09-15_21:57:13", "n_copies": 1, "nx_neurons": 1, "n_seconds": 900, "n_inferences": 11482720, "inf_per_second": 12758.577777777778, "batchsize": 16, "log_name": "gpu_bsize_16.json", "status": "Running"}

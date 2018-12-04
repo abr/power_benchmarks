@@ -1,0 +1,1 @@
+{"status": "Running", "log_name": "movidius_ncopies_1.json", "start_time": "2018-09-16_16:50:21", "batchsize": 1, "nx_neurons": 1, "n_seconds": 900, "hardware": "MOVIDIUS", "n_inferences": 270339, "end_time": "2018-09-16_17:05:21", "n_copies": 1, "inf_per_second": 300}

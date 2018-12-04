@@ -1,0 +1,1 @@
+{"hardware": "CPU", "start_time": "2018-11-23_14:38:33", "end_time": "2018-11-23_14:53:33", "nx_neurons": 1, "n_copies": 4, "n_layers": 10, "n_seconds": 900, "n_inferences": 319712, "inf_per_second": 355.23555555555555, "batchsize": 1, "log_name": "cpu_scaled_4x.json", "status": "Running"}

@@ -1,0 +1,1 @@
+{"hardware": "GPU", "start_time": "2018-11-23_13:20:50", "end_time": "2018-11-23_13:35:50", "nx_neurons": 1, "n_copies": 10, "n_layers": 10, "n_seconds": 900, "n_inferences": 83666, "inf_per_second": 92.96222222222222, "batchsize": 1, "log_name": "gpu_scaled_10x.json", "status": "Running"}

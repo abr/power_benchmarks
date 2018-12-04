@@ -1,0 +1,1 @@
+{"end_time": "2018-10-18_21:34:49", "start_time": "2018-10-18_21:19:49", "n_copies": 2, "log_name": "movidius_scaled_2x.json", "status": "Running", "n_layers": 10, "batchsize": 1, "n_inferences": 147115, "hardware": "MOVIDIUS", "inf_per_second": 163.4611111111111, "n_seconds": 900, "nx_neurons": 1}

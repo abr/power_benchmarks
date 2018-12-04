@@ -1,0 +1,1 @@
+{"hardware": "LOIHI", "n_inferences": 1000.0, "batchsize": 1, "log_name": "run1.json", "status": "Running", "n_copies": 1, "nx_neurons": 1, "start_time": "2018-11-27_14:52:22.956637", "end_time": "2018-11-27_14:52:34.096637"}

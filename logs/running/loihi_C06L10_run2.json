@@ -1,0 +1,1 @@
+{"nx_neurons": 1, "hardware": "LOIHI", "end_time": "2018-11-25_23:07:57.935951", "n_copies": 6, "status": "Running", "start_time": "2018-11-25_23:07:41.835951", "log_name": "C06L10_run2.json", "batchsize": 1, "n_inferences": 1000.0, "n_layers": 10}

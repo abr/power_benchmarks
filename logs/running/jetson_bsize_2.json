@@ -1,0 +1,1 @@
+{"status": "Running", "log_name": "jetson_bsize_2.json", "start_time": "2018-09-18_19:45:22", "nx_neurons": 1, "batchsize": 2, "hardware": "JETSON", "n_inferences": 1101434, "end_time": "2018-09-18_20:00:22", "n_copies": 1, "n_seconds": 900, "inf_per_second": 1223}

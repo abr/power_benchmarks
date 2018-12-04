@@ -1,0 +1,1 @@
+{"log_name": "C08L10_run2.json", "hardware": "LOIHI", "start_time": "2018-11-25_23:14:50.186553", "nx_neurons": 1, "status": "Running", "batchsize": 1, "n_layers": 10, "n_copies": 8, "end_time": "2018-11-25_23:15:06.316553", "n_inferences": 1000.0}
