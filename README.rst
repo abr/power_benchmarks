@@ -2,7 +2,7 @@
 ABR Keyword Spotting Power Benchmarks
 *************************************
 
-This repository contains power benchmarking code for running a simple two-layer, 256 neuron per layer neural network keyword spotter on both neuromorphic and conventional hardware devices. On conventional devices a Tensorflow version of the keyword spotter is used, while on neuromorphic devices (Loihi), an architecturally identical Nengo version is used. This repo contains instructions for running power benchmarking trials, plotting the associated results, and reproducing our paper summarizing these results. 
+This repository contains power benchmarking code for running a simple two-layer, 256 neuron per layer neural network keyword spotter on both neuromorphic and conventional hardware devices. On conventional devices a Tensorflow version of the keyword spotter is used, while on neuromorphic devices (Loihi), an architecturally identical Nengo version is used. This repo contains instructions for running power benchmarking trials, plotting the associated results, and reproducing our `paper <https://arxiv.org/abs/1812.01739>`_ summarizing these results. 
 
 
 **Installation**
@@ -37,6 +37,7 @@ Check out the Movidius documentation to get more details. Importantly, we are us
 Once in this repository, the Tensorflow model code is defined in :code:`models.py`. To get network parameters and data, run :code:`python download.py` from within this directory on the command line. You may need to :code:`pip install requests` in order to perform this download. To assess the accuracy of the model on a given hardware device, run :code:`python run_accuracy_check.py --[gpu/cpu/movidius]`. If you are running  the Movidius NCS, you will have to add a path to a compiled graph with the flag :code:`--mov_graph=[graph]`. See below for instructions on compiling this graph. Running a benchmarking experiment with CPU/GPU (or compiling a Movidius graph) will write a Tensorboard summary to enable visual inspection of the network structure.   
 
 Benchmarking and graph compilation scripts take a variety of command line options for configuring things like the batchsize, the number of neurons per layer, the number of scaling layers/branches in scaling experiments, the run time, and the log file names. If you are running new scripts, be aware of these configuration options, as they are used to organize the data during the analysis phase. 
+
 
 **CPU Benchmarks**
 ~~~~~~~~~~~~~~~~~~
