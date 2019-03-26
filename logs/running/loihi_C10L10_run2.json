@@ -1,1 +1,0 @@
-{"n_layers": 10, "status": "Running", "hardware": "LOIHI", "start_time": "2018-11-25_23:34:21.781495", "n_copies": 10, "n_inferences": 1000.0, "end_time": "2018-11-25_23:34:37.911495", "log_name": "C10L10_run2.json", "batchsize": 1, "nx_neurons": 1}

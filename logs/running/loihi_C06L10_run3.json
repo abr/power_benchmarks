@@ -1,1 +1,0 @@
-{"log_name": "C06L10_run3.json", "n_inferences": 1000.0, "start_time": "2018-11-25_23:09:43.631659", "end_time": "2018-11-25_23:09:59.761659", "status": "Running", "nx_neurons": 1, "n_copies": 6, "n_layers": 10, "batchsize": 1, "hardware": "LOIHI"}
