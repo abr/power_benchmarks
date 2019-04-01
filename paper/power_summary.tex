@@ -56,7 +56,7 @@
 
 \begin{abstract} 
 
- Using Intel's Loihi neuromorphic research chip and ABR's Nengo Deep Learning toolkit, we analyze the inference speed, dynamic power consumption, and energy cost per inference of a two-layer neural network keyword spotter trained to recognize a single phrase. We perform comparative analyses of this keyword spotter running on more conventional hardware devices including a CPU, a GPU, Nvidia's Jetson TX1, and the Movidius Neural Compute Stick. Our results indicate that for this inference application, Loihi outperforms all of these alternatives on an energy cost per inference basis while maintaining near-equivalent inference accuracy. Furthermore, an analysis of tradeoffs between network size, inference speed, and energy cost indicates that Loihi's comparative advantage over other low-power computing devices improves for larger networks.  
+ Using Intel's Loihi neuromorphic research chip and ABR's Nengo Deep Learning toolkit, we analyze the inference speed, dynamic power consumption, and energy cost per inference of a two-layer neural network keyword spotter trained to recognize a single phrase. We perform comparative analyses of this keyword spotter running on more conventional hardware devices including a CPU, a GPU, Nvidia's Jetson TX1, and the Movidius Neural Compute Stick. Our results indicate that for this real-time inference application, Loihi outperforms all of these alternatives on an energy cost per inference basis while maintaining equivalent inference accuracy. Furthermore, an analysis of tradeoffs between network size, inference speed, and energy cost indicates that Loihi's comparative advantage over other low-power computing devices improves for larger networks.  
 
 \end{abstract} 
 
@@ -71,7 +71,7 @@ Neuromorphic hardware consists of large numbers of neuron-like processing elemen
 \label{per_inf_fig}
 \end{figure}
 
-To provide a quantitative analysis of these expected benefits, we present the results of benchmarking a keyword spotting model running on Intel's new neuromorphic research processor, Loihi \cite{Davies:2018}. Keyword spotting involves monitoring an audio stream for the purposes of detecting some keyword of interest (e.g. ``Hey Siri''). This task is useful for benchmarking neuromorphic devices because it (a) requires low-latency processing of input signals, (b) benefits considerably from improvements in energy efficiency, and (c) has numerous practical applications in mobile and IoT devices.
+To provide a quantitative analysis of these expected benefits, we present the results of benchmarking a keyword spotting model running on Intel's new neuromorphic research processor, Loihi \cite{Davies:2018}. Keyword spotting involves monitoring a real-time audio stream for the purposes of detecting some keyword of interest (e.g. ``Hey Siri''). This task is useful for benchmarking neuromorphic devices because it (a) requires low-latency processing of real-time input signals, (b) benefits considerably from improvements in energy efficiency, and (c) has numerous practical applications in mobile and IoT devices.
 
 \begin{table*}[t!]
 \caption{Mean power consumption and energy cost per inference across hardware devices.} 
@@ -90,7 +90,7 @@ CPU & 17.01 & 28.48 & 11.47 & 1813.63 & 0.0063 \\
 Jetson & 2.64 & 4.98 & 2.34 & 419 & 0.0056 \\
 Movidius & 0.210 & 0.647 & 0.437 & 300 & 0.0015 \\
 \belowspace
-Loihi & 0.031 & 0.100 & 0.069 & 89.8 & 0.00077 \\
+Loihi & 0.029 & 0.110 & 0.081 & 296 & 0.00027 \\
 
 \hline
 \end{tabular}
@@ -101,7 +101,7 @@ Loihi & 0.031 & 0.100 & 0.069 & 89.8 & 0.00077 \\
 \label{power-table}
 \end{table*}
 
-To investigate the relative power efficiency of different types of hardware running our keyword spotter, we perform experiments using the following devices: CPU (Xeon E5-2630), GPU (Quadro K4000), Jetson TX1, Movidius NCS, and Loihi (Wolf Mountain board). Below, the methodology for each experiment is reported, along with a detailed discussion of results. The same inference-only version of the keyword spotter running in TensorFlow (TF) is used in each non-spiking benchmark, achieving a test classification accuracy of 92.7\% across all hardware devices on a small dataset of spoken utterances we collected. A model that is architecturally identical to this TF model is then trained to work in the spiking domain \cite{Hunsberger:2016} and run with the Nengo neural simulator \cite{Bekolay:2014}, achieving a test classifcation accuracy of 90.6\% both in simulation and when running on Loihi.
+To investigate the relative power efficiency of different types of hardware running our keyword spotter, we perform experiments using the following devices: CPU (Xeon E5-2630), GPU (Quadro K4000), Jetson TX1, Movidius NCS, and Loihi (Wolf Mountain board). Below, the methodology for each experiment is reported, along with a detailed discussion of results. The same inference-only version of the keyword spotter running in TensorFlow (TF) is used in each non-spiking benchmark, achieving a test classification accuracy of 92.7\% across all hardware devices on a small dataset of spoken utterances we collected. A model that is architecturally identical to this TF model is then trained to work in the spiking domain \cite{Hunsberger:2016} and run with the Nengo neural simulator \cite{Bekolay:2014}, achieving a test classifcation accuracy of 93.8\% both in simulation and when running on Loihi.
 
 Overall, our comparisons indicate that Loihi is more power efficient on a cost-per-inference basis than alternative hardware devices in the context of this keyword spotting application (see Figure \ref{per_inf_fig} and Table \ref{power-table}), and more generally in the context of similar deep learning applications.
 
@@ -124,9 +124,9 @@ The purpose of the keyword spotting network is to take in an audio waveform corr
 Model & True Positive (\%) & False Negative (\%) & True Negative (\%) & False Positive (\%) \\
 \hline
 \abovespace
-TensorFlow & 92.7 & 6.3 & 97.9 & 2.1 \\   
+TensorFlow & 92.7 & 7.3 & 97.9 & 2.1 \\   
 \belowspace
-Nengo Loihi & 90.6 & 9.4 & 94.8 & 5.2 \\
+Nengo Loihi & 93.8 & 6.2 & 97.9 & 2.1 \\
 
 \hline
 \end{tabular}
@@ -186,13 +186,13 @@ To ensure clarity regarding the content of our results, there are a number of as
 \begin{figure*}[ht!]
 \centering
     \includegraphics[width=6.7in]{./figures/movidius_summary.png}
-    \caption{A comparison between Movidius NCS and Loihi for inference speed and energy cost per inference as a function of network size. The scaling architecture and parameter initializations are identical to those used in Figure \ref{comp_fig} above.}
+	\caption{A comparison between Movidius NCS and Loihi for inference speed and energy cost per inference as a function of network size. The scaling architecture and parameter initializations are identical to those used in Figure \ref{comp_fig} above. The dotted line in the middle plot indicates the speed threshold for implementing real-time inference on audio data with a frame stride of 10ms. With larger network sizes, Loihi maintains its ability to perform real-time inference, while the Movidius NCS does not.}
 \label{scaling_fig}
 \end{figure*}
 
 During runtime, inference execution involves a complicated software stack that is non-identical across hardware backends. For example, on CPU, GPU, and Jetson, inference is performed directly in TensorFlow, which controls how each computation is executed and how data transfer is performed. On Movidius and Loihi, by comparison, custom APIs are used to perform these tasks using hardware-specific compilations of the original TensorFlow model. As such, differences between these software stacks are incorporated into our power measurements, and it is generally not possible to disentangle changes in power consumption that are due to the software stack from changes due to the hardware itself. We have let TensorFlow allocate memory, perform data I/O, and execute computations as per default, which is likely to be comparable to how a typical TensorFlow user would try to build and deploy a model of this sort. In the case of GPU computations, this may provide a distorted view of energy consumption given that TensorFlow tries to allocate 100\% of GPU memory by default, regardless of the computation graph being implemented (we have set the per process allocation limit to 10\% of available memory, though this does not seem to significantly reduce dynamic power draw). Further differences could theoretically arise if the experiments are repeated with different versions of e.g., TensorFlow, CUDA, CuDNN, or any other packages present in a particular software stack. In the case of CPU benchmarks, our benchmarking workstation includes 24 Xeon E5-2630s, and we allow TensorFlow to allocate computations across these cores as per its default settings. 
 
-On the other hand, the 0.7.5 version of NxSDK software used for our interfacing to Loihi is still at an alpha state of maturity with few efficiency optimizations implemented to date. For example, we encountered NxSDK performance limitations associated with data I/O that currently limit our measured inference performance by up to an order of magnitude compared to what the Loihi silicon apparently is able to support.
+% On the other hand, the 0.7.5 version of NxSDK software used for our interfacing to Loihi is still at an alpha state of maturity with few efficiency optimizations implemented to date. For example, we encountered NxSDK performance limitations associated with data I/O that currently limit our measured inference performance by up to an order of magnitude compared to what the Loihi silicon apparently is able to support.
 
 \subsubsection{Data I/O}
 
@@ -233,13 +233,15 @@ Figure \ref{comp_fig} displays the results of an experiment in which additional 
 
 Since Movidius is closest to Loihi from an efficiency perspective, it is useful to provide a more detailed analysis of how energy consumption and inference speed change as a function of network size in the two devices. Figure \ref{scaling_fig} illustrates how dynamic energy consumption, inference speed, and energy cost per inference change as a function of network size. Although the dynamic power consumption and cost per inference for Loihi appears to be flat in comparison to Movidius, Figure \ref{loihi_fig} indicates that, as expected, both metrics increase monotonically with network size. Moreover, Loihi's modest rate of increase in comparison to Movidius indicates a sizeable scaling advantage. This advantage likely arises both because Loihi's inherent architectural parallelism allows inference speed to remain roughly constant as a function of network size, and because the temporal sparsity and data locality of a spiking network leads total power consumption to increase much more slowly as function of network size. Together, these two factors enable Loihi to provide increasingly large performance and energy efficiency improvements over Movidius as network size grows. 
 
-It is also worth noting that although the network topology here is identical to that of the keyword spotter when N=0, the inference speed is speed is a bit slower due to the fact that we allocate the neurons in the input layer across eight neuromorphic cores on Loihi (as opposed to two cores in the original keyword spotter) in order to accommodate the connectivity demands that arise for large values of N. This leads to an increase in the energy cost per inference for N=0 in comparison to the keyword spotter even though the number of neurons and weights remains the same. 
+From a practical perspective, these gains are of considerable significance. Running real-time applications on audio data with a frame stride of 10ms requires an inference speed of at least 100 inferences per second. As is illustrated in Figure \ref{scaling_fig}, Loihi maintains this inference speed as network size increases, while Movidius does not. Since any form of speech recognition that goes beyond the keyword level will likely require a much more complicated network architecture, the performance characteristics of Movidius are likely prohibitive for such a task. In other words, systems like Loihi may offer the only practical path forward for building sophisticated programmable recognition systems on edge devices with constrained power and latency requirements.
+
+It is also worth noting that although the network topology here is identical to that of the keyword spotter when N=0, the inference speed is a bit slower due to the fact that we allocate the neurons in the input layer across eight neuromorphic cores on Loihi (as opposed to two cores in the original keyword spotter) in order to accommodate the connectivity demands that arise for large values of N. This leads to an increase in the energy cost per inference for N=0 in comparison to the keyword spotter even though the number of neurons and weights remains the same. 
 
 \section{Conclusion}
 
-Overall, we have demonstrated that running a keyword spotting application on a state-of-the-art neuromorphic processor results in improved energy efficiency on a cost-per-inference basis over a number of existing low power computing devices. Given the results depicted in Figure \ref{scaling_fig}, it is worth noting that even if all of the dynamic power consumption for the Movidius NCS is spent on USB I/O when N=0, it would still be the case that Loihi offers a roughly 6x improvement in power efficiency when N=10, largely because Loihi's dynamic power consumption increases very modestly while its inference speed remains nearly constant due to the benefits of architectural parallelism. 
+Overall, we have demonstrated that running a keyword spotting application on a state-of-the-art neuromorphic processor results in improved energy efficiency on a cost-per-inference basis over a number of existing low power computing devices. Given the results depicted in Figure \ref{scaling_fig}, it is worth noting that even if all of the dynamic power consumption for the Movidius NCS is spent on USB I/O when N=0, it would still be the case that Loihi offers a roughly 10x improvement in power efficiency when N=10, largely because Loihi's dynamic power consumption increases very modestly while its inference speed remains nearly constant due to the benefits of architectural parallelism. 
 
-Overall, these scaling properties translate into significant energy efficiency improvements for large networks in comparsion to the closest alternative low-power device we tested, the Movidius NCS. These efficiency gains importantly come with little cost to model accuracy. Given as much, efforts to program neuromorphic devices to perform more sophisticated computational tasks are likely to yield significant benefits. 
+Overall, these scaling properties translate into significant energy efficiency improvements for large networks in comparsion to the closest alternative low-power device we tested, the Movidius NCS. These efficiency gains importantly come with no cost to model accuracy. Given as much, efforts to program neuromorphic devices to perform more sophisticated computational tasks are likely to yield significant benefits. 
 
 \section*{Acknowledgements}
 

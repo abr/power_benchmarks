@@ -118,11 +118,11 @@ plt.gcf().text(
 plt.gcf().text(
     0.33, 0.17, str(round(movidius_x, 1)) + 'x', fontsize=15, fontweight='bold')
 plt.gcf().text(
-    0.48, 0.17, str(round(jetson_x, 1)) + 'x', fontsize=15, fontweight='bold')
+    0.47, 0.17, str(round(jetson_x, 1)) + 'x', fontsize=15, fontweight='bold')
 plt.gcf().text(
-    0.63, 0.17, str(round(cpu_x, 1)) + 'x', fontsize=15, fontweight='bold')
+    0.62, 0.17, str(round(cpu_x, 1)) + 'x', fontsize=15, fontweight='bold')
 plt.gcf().text(
-    0.78, 0.17, str(round(gpu_x, 1)) + 'x', fontsize=15, fontweight='bold')
+    0.77, 0.17, str(round(gpu_x, 1)) + 'x', fontsize=15, fontweight='bold')
 
 plot.set_title('Dynamic Energy Cost Per Inference (batchsize = 1)', fontsize=14)
 plot.set_xlabel('', labelpad=10)
@@ -218,6 +218,7 @@ ax[0].set_ylabel('Watts', fontsize=14)
 ax[1].set_title('Average Inference Speed', fontsize=14)
 ax[1].set_xlabel('N (# neurons = N*10*256 + 512)', fontsize=14)
 ax[1].set_ylabel('Inferences Per Second', fontsize=14)
+ax[1].axhline(100, ls='--', c='k', linewidth=0.7)
 
 ax[2].set_title('Average Cost Per Inference', fontsize=14)
 ax[2].set_xlabel('N (# neurons = N*10*256 + 512)', fontsize=14)
@@ -225,17 +226,17 @@ ax[2].set_ylabel('Joules')
 
 # add energy cost ratios for comparison of scaled Movidius, Loihi models
 plt.gcf().text(
-    0.704, 0.23, str(round(cost_ratios[0], 1)) + 'x', fontsize=10, fontweight='bold')
+    0.704, 0.2, str(round(cost_ratios[0], 1)) + 'x', fontsize=10, fontweight='bold')
 plt.gcf().text(
-    0.74, 0.23, str(round(cost_ratios[1], 1)) + 'x', fontsize=10, fontweight='bold')
+    0.74, 0.2, str(round(cost_ratios[1], 1)) + 'x', fontsize=10, fontweight='bold')
 plt.gcf().text(
-    0.775, 0.23, str(round(cost_ratios[2], 1)) + 'x', fontsize=10, fontweight='bold')
+    0.775, 0.2, str(round(cost_ratios[2], 1)) + 'x', fontsize=10, fontweight='bold')
 plt.gcf().text(
-    0.811, 0.23, str(round(cost_ratios[3], 1)) + 'x', fontsize=10, fontweight='bold')
+    0.811, 0.2, str(round(cost_ratios[3], 1)) + 'x', fontsize=10, fontweight='bold')
 plt.gcf().text(
-    0.846, 0.23, str(round(cost_ratios[4], 1)) + 'x', fontsize=10, fontweight='bold')
+    0.846, 0.2, str(round(cost_ratios[4], 1)) + 'x', fontsize=10, fontweight='bold')
 plt.gcf().text(
-    0.882, 0.23, str(round(cost_ratios[5], 1)) + 'x', fontsize=10, fontweight='bold')
+    0.882, 0.2, str(round(cost_ratios[5], 1)) + 'x', fontsize=10, fontweight='bold')
 
 legend = ax[0].legend()
 legend.set_title('')
