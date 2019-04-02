@@ -5,7 +5,8 @@
 % For figures
 \usepackage{graphicx} % more modern
 %\usepackage{epsfig} % less modern
-\usepackage{subfigure} 
+\usepackage{subfigure}
+\usepackage{caption}
 
 % For citations
 \usepackage{natbib}
@@ -113,7 +114,6 @@ In the remainder of this paper we describe the network and training methods in m
 The purpose of the keyword spotting network is to take in an audio waveform corresponding to an utterance, and then predict a sequence of characters to ascertain whether the utterance contains some keyword of interest. The audio waveform is preprocessed by performing Fourier transforms on an overlapping series of windows to compute Mel-frequency Cepstral Coefficient (MFCC) features for each window. Windows of adjacent MFCC features are concatenated into frames and passed as input to the network, with the frames having a stride of 10ms.  
 
 \begin{table*}[t!]
-\caption{Keyword Spotting Performance Analysis.} 
 \vskip 0.15in
 \begin{center}
 \begin{small}
@@ -134,6 +134,7 @@ Nengo Loihi & 93.8 & 6.2 & 97.9 & 2.1 \\
 \end{small}
 \end{center}
 \vskip -0.1in
+\caption{Keyword spotting performance analysis. The spiking network on Loihi classifies examples as accurately as the non-spiking ANN in TensorFlow. The performance improvement seen on Loihi is not significant, since it amounts to the correct classification of a single additional test item.}
 \label{acc-table}
 \end{table*}
 
