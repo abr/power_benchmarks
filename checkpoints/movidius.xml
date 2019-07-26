@@ -1,0 +1,133 @@
+<?xml version="1.0" ?>
+<net batch="1" name="movidius" version="5">
+	<layers>
+		<layer id="0" name="inputs" precision="FP16" type="Input">
+			<output>
+				<port id="0">
+					<dim>1</dim>
+					<dim>390</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="1" name="char_layer_0/xw_plus_b/MatMul" precision="FP16" type="FullyConnected">
+			<data out-size="256"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>390</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="0" size="199680"/>
+				<biases offset="199680" size="512"/>
+			</blobs>
+		</layer>
+		<layer id="2" name="char_layer_0/outputs" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="3" name="char_layer_1/xw_plus_b/MatMul" precision="FP16" type="FullyConnected">
+			<data out-size="256"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="200192" size="131072"/>
+				<biases offset="331264" size="512"/>
+			</blobs>
+		</layer>
+		<layer id="4" name="char_layer_1/outputs" precision="FP16" type="ReLU">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="5" name="char_output/outputs/MatMul" precision="FP16" type="FullyConnected">
+			<data out-size="29"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</input>
+			<output>
+				<port id="3">
+					<dim>1</dim>
+					<dim>29</dim>
+				</port>
+			</output>
+			<blobs>
+				<weights offset="331776" size="14848"/>
+				<biases offset="346624" size="58"/>
+			</blobs>
+		</layer>
+	</layers>
+	<edges>
+		<edge from-layer="0" from-port="0" to-layer="1" to-port="0"/>
+		<edge from-layer="1" from-port="3" to-layer="2" to-port="0"/>
+		<edge from-layer="2" from-port="1" to-layer="3" to-port="0"/>
+		<edge from-layer="3" from-port="3" to-layer="4" to-port="0"/>
+		<edge from-layer="4" from-port="1" to-layer="5" to-port="0"/>
+	</edges>
+	<meta_data>
+		<MO_version value="2019.1.1-83-g28dfbfd"/>
+		<cli_parameters>
+			<batch value="1"/>
+			<data_type value="FP16"/>
+			<disable_fusing value="False"/>
+			<disable_gfusing value="False"/>
+			<disable_nhwc_to_nchw value="False"/>
+			<disable_resnet_optimization value="False"/>
+			<enable_concat_optimization value="False"/>
+			<extensions value="DIR"/>
+			<framework value="tf"/>
+			<generate_deprecated_IR_V2 value="False"/>
+			<input_meta_graph value="DIR/movidius.meta"/>
+			<input_model_is_text value="False"/>
+			<keep_shape_ops value="False"/>
+			<log_level value="ERROR"/>
+			<mean_scale_values value="{}"/>
+			<mean_values value="()"/>
+			<move_to_preprocess value="False"/>
+			<output_dir value="DIR"/>
+			<reverse_input_channels value="False"/>
+			<scale_values value="()"/>
+			<silent value="False"/>
+			<version value="False"/>
+			<unset unset_cli_parameters="finegrain_fusing, freeze_placeholder_with_value, input, input_checkpoint, input_model, input_shape, model_name, output, placeholder_shapes, saved_model_dir, saved_model_tags, scale, tensorboard_logdir, tensorflow_custom_layer_libraries, tensorflow_custom_operations_config_update, tensorflow_object_detection_api_pipeline_config, tensorflow_operation_patterns, tensorflow_subgraph_patterns, tensorflow_use_custom_operations_config"/>
+		</cli_parameters>
+	</meta_data>
+</net>

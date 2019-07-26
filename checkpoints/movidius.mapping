@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<mapping>
+	<map>
+		<framework name="char_layer_0/xw_plus_b" out_port_id="0"/>
+		<IR id="1" name="char_layer_0/xw_plus_b/MatMul" out_port_id="3"/>
+	</map>
+	<map>
+		<framework name="char_output/outputs" out_port_id="0"/>
+		<IR id="5" name="char_output/outputs/MatMul" out_port_id="3"/>
+	</map>
+	<map>
+		<framework name="inputs" out_port_id="0"/>
+		<IR id="0" name="inputs" out_port_id="0"/>
+	</map>
+	<map>
+		<framework name="char_layer_1/xw_plus_b" out_port_id="0"/>
+		<IR id="3" name="char_layer_1/xw_plus_b/MatMul" out_port_id="3"/>
+	</map>
+	<map>
+		<framework name="char_layer_0/outputs" out_port_id="0"/>
+		<IR id="2" name="char_layer_0/outputs" out_port_id="1"/>
+	</map>
+	<map>
+		<framework name="char_layer_1/outputs" out_port_id="0"/>
+		<IR id="4" name="char_layer_1/outputs" out_port_id="1"/>
+	</map>
+</mapping>
