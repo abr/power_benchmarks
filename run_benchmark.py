@@ -5,13 +5,15 @@ import time
 import numpy as np
 
 from datetime import datetime
-from models import TensorflowModel, MovidiusModel, ScaledModel
+from models import TensorflowModel, MovidiusModel, MovidiusModelV2, ScaledModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpu", action="store_true")
 parser.add_argument("--gpu", action="store_true")
 parser.add_argument("--movidius", action="store_true")
 parser.add_argument("--mov_graph", type=str)
+parser.add_argument("--tpu", action="store_true")
+parser.add_argument("--tpu_graph", type=str)
 parser.add_argument("--bsize", type=int)
 parser.add_argument("--n_copies", type=int)
 parser.add_argument("--n_layers", type=int)
@@ -65,10 +67,15 @@ if args.cpu or args.gpu:
 
 # handles the case of using the movidius NCS
 elif args.movidius:
-    model = MovidiusModel()
-    model.load_graph(args.mov_graph)
+    model = MovidiusModelV2()
+    # model.load_graph(args.mov_graph)
 
     hardware = 'MOVIDIUS'
+
+elif args.tpu:
+    model = TPUModel()
+    
+    hardware = 'TPU'
 
 else:
     raise Exception('No hardware specified to run benchmark on!')

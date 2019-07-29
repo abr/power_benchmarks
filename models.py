@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import tensorflow as tf
 
-# attempt to import movidius api, won't work in conda environment
+# attempt to import movidius V1 api, won't work in conda environment
 try:
     from mvnc import mvncapi as mvnc
     mvnc.SetGlobalOption(mvnc.GlobalOption.LOG_LEVEL, 2)
@@ -19,6 +19,33 @@ try:
 
 except ImportError:
     warnings.warn('NCS API not installed', UserWarning)
+
+# attempt to import movidius V2 api, might work in conda environment
+try:
+    from openvino.inference_engine import IENetwork, IEPlugin
+    
+    model_bin = './checkpoints/movidius.bin'
+    model_xml = './checkpoints/movidius.xml'
+
+    plugin = IEPlugin(device='MYRIAD')
+    network = IENetwork(model=model_xml, weights=model_bin)
+    exec_net = plugin.load(network=network)
+
+    input_blob = next(iter(network.inputs))
+    output_blob = next(iter(network.outputs))
+
+except ImportError:
+    warnings.warn('NCS OpenVino API not installed', UserWarning)
+
+# attempt to import edgetpu api, only works when ssh'd into coral dev board
+try:
+    from edgetpu.basic.basic_engine import BasicEngine
+    
+    model_path = './checkpoints/movidius_edgetpu.tflite'
+    tpu_engine = BasicEngine(model_path)
+
+except ImportError:
+    warnings.warn('EdgeTPU API not installed', UserWarning)
 
 
 class BaseModel(object):
@@ -121,7 +148,7 @@ class TensorflowModel(BaseModel):
         with self.graph.as_default():
 
             self.inputs = tf.placeholder(
-                tf.float32, [None, self.n_inputs], name='inputs')
+                tf.float32, [1, self.n_inputs], name='inputs')
 
             self.copy_scopes = ['copy_' + str(c) for c in range(n_copies)]
             copy_output = []
@@ -323,3 +350,26 @@ class MovidiusModel(BaseModel):
         '''Shut everything down on the NCS'''
         self.model.DeallocateGraph()
         device.CloseDevice()
+
+
+class MovidiusModelV2(BaseModel):
+    """An inference-only version of speech model running on Movidius NCS 2"""
+
+    def predict_text(self, features):
+        '''Predict a single character from a feature input window'''
+        result = exec_net.infer(inputs={input_blob: features})
+        outputs = result[output_blob]
+        idx = np.argmax(outputs)
+
+        return self.id_to_char[idx]
+
+
+class TPUModel(BaseModel):
+    """An inference-only version of speech model running on Coral Edge TPU"""
+
+    def predict_text(self, features):
+        '''Predict a single character from a feature input window'''
+        _, res = tpu_engine.RunInference(np.squeeze(features).astype(np.uint8))
+        idx = np.argmax(res)
+
+        return self.id_to_char[idx]
