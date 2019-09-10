@@ -1,1 +1,0 @@
-{"log_name": "C00L00_run1.json", "n_copies": 0, "start_time": "2018-11-25_22:42:37.634517", "nx_neurons": 1, "n_layers": 0, "n_inferences": 1000.0, "end_time": "2018-11-25_22:42:53.154517", "batchsize": 1, "hardware": "LOIHI", "status": "Running"}

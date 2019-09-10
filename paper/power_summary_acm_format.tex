@@ -1,78 +1,148 @@
-\documentclass{article}
+%%%% Proceedings format for most of ACM conferences (with the exceptions listed below) and all ICPS volumes.
+\documentclass[sigconf, screen]{acmart}
+%%%% As of March 2017, [siggraph] is no longer used. Please use sigconf (above) for SIGGRAPH conferences.
 
-% use Times
-\usepackage{times}
-% For figures
-\usepackage{graphicx} % more modern
-%\usepackage{epsfig} % less modern
-\usepackage{subfigure}
-\usepackage{caption}
+%%%% Proceedings format for SIGPLAN conferences 
+% \documentclass[sigplan, anonymous, review]{acmart}
 
-% For citations
-\usepackage{natbib}
+%%%% Proceedings format for SIGCHI conferences
+% \documentclass[sigchi, review]{acmart}
 
-% For algorithms
-% \usepackage{algorithm}
-% \usepackage{algorithmic}
-\usepackage{hyperref}
+%%%% To use the SIGCHI extended abstract template, please visit
+% https://www.overleaf.com/read/zzzfqvkmrfzn
 
-% Packages hyperref and algorithmic misbehave sometimes.  We can fix
-% this with the following command.
-% \newcommand{\theHalgorithm}{\arabic{algorithm}}
+%
+% defining the \BibTeX command - from Oren Patashnik's original BibTeX documentation.
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08emT\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+    
+% Rights management information. 
+% This information is sent to you when you complete the rights form.
+% These commands have SAMPLE values in them; it is your responsibility as an author to replace
+% the commands and values with those provided to you when you complete the rights form.
+%
+% These commands are for a PROCEEDINGS abstract or paper.
+% \copyrightyear{2019}
+% \acmYear{2019}
+% \setcopyright{acmlicensed}
+% \acmConference[NICE '19]{NICE '19: Neuro-Inspired Computational Elements Workshop}{March 26--28, 2019}{Albany, NY}
+% \acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection, June 03--05, 2018, Woodstock, NY}
+% \acmPrice{15.00}
+% \acmDOI{10.1145/1122445.1122456}
+% \acmISBN{978-1-4503-9999-9/18/06}
 
-\usepackage[accepted]{template}
-% \usepackage{authblk}
+%
+% These commands are for a JOURNAL article.
+%\setcopyright{acmcopyright}
+%\acmJournal{TOG}
+%\acmYear{2018}\acmVolume{37}\acmNumber{4}\acmArticle{111}\acmMonth{8}
+%\acmDOI{10.1145/1122445.1122456}
 
+%
+% Submission ID. 
+% Use this when submitting an article to a sponsored event. You'll receive a unique submission ID from the organizers
+% of the event, and this ID should be used as the parameter to this command.
+%\acmSubmissionID{123-A56-BU3}
 
-% The \icmltitle you define below is probably too long as a header.
-% Therefore, a short form for the running title is supplied here:
-\icmltitlerunning{Power Benchmarks on Neuromorphic Hardware}
+%
+% The majority of ACM publications use numbered citations and references. If you are preparing content for an event
+% sponsored by ACM SIGGRAPH, you must use the "author year" style of citations and references. Uncommenting
+% the next command will enable that style.
+%\citestyle{acmauthoryear}
 
-\begin{document} 
+%
+% end of the preamble, start of the body of the document source.
+\begin{document}
 
-\twocolumn[
-\icmltitle{Benchmarking Keyword Spotting Efficiency on Neuromorphic Hardware}
+%
+% The "title" command has an optional parameter, allowing the author to define a "short title" to be used in page headers.
+\title{Benchmarking Keyword Spotting Efficiency on Neuromorphic Hardware}
 
-\begin{icmlauthorlist}
-\icmlauthor{Peter Blouw}{}
-\icmlauthor{Xuan Choo}{}
-\icmlauthor{Eric Hunsberger}{}
-\icmlauthor{Chris Eliasmith}{}
-\item{Applied Brain Research, Inc.}
-\item{Waterloo, ON, Canada}
-\item{Correspondence: \{peter.blouw, xuan.choo, eric.hunsberger, chris.eliasmith\}@appliedbrainresearch.com}
+%
+% The "author" command and its associated commands are used to define the authors and their affiliations.
+% Of note is the shared affiliation of the first two authors, and the "authornote" and "authornotemark" commands
+% used to denote shared contribution to the research.
+\author{Peter Blouw}
+\email{peter.blouw@appliedbrainresearch.com}
+\author{Xuan Choo}
+\email{xuan.choo@appliedbrainresearch.com}
+\author{Eric Hunsberger}
+\email{eric.hunsberger@appliedbrainresearch.com}
+\author{Chris Eliasmith}
+\email{chris.eliasmith@appliedbrainresearch.com}
+\affiliation{%
+  \institution{Applied Brain Research Inc.}
+  \city{Waterloo}
+  \state{Ontario}
+  \country{Canada}
+}
 
-\end{icmlauthorlist}
+%
+% By default, the full list of authors will be used in the page headers. Often, this list is too long, and will overlap
+% other information printed in the page headers. This command allows the author to define a more concise list
+% of authors' names for this purpose.
+\renewcommand{\shortauthors}{Blouw et al.}
 
+% The abstract is a short summary of the work to be presented in the article.
+\begin{abstract}
+Using Intel's Loihi neuromorphic research chip and ABR's Nengo Deep Learning toolkit, we analyze the inference speed, dynamic power consumption, and energy cost per inference of a two-layer neural network keyword spotter trained to recognize a single phrase. We perform comparative analyses of this keyword spotter running on more conventional hardware devices including a CPU, a GPU, Nvidia's Jetson TX1, and the Movidius Neural Compute Stick. Our results indicate that for this real-time inference application, Loihi outperforms all of these alternatives on an energy cost per inference basis while maintaining equivalent inference accuracy. Furthermore, an analysis of tradeoffs between network size, inference speed, and energy cost indicates that Loihi's comparative advantage over other low-power computing devices improves for larger networks.  
+\end{abstract}
 
-% You may provide any keywords that you 
-% find helpful for describing your paper; these are used to populate 
-% the "keywords" metadata in the PDF but will not be shown in the document
-\icmlkeywords{keyword spotting; speech recognition; machine learning; neuromorphics; spiking neural networks}
-\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
+% The code below is generated by the tool at http://dl.acm.org/ccs.cfm.
+% Please copy and paste the code instead of the example below.
+%
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10010583.10010662</concept_id>
+<concept_desc>Hardware~Power and energy</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010583.10010786.10010792.10010798</concept_id>
+<concept_desc>Hardware~Neural systems</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010257</concept_id>
+<concept_desc>Computing methodologies~Machine learning</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
 
-\vskip 0.3in
-]
+\ccsdesc[500]{Hardware~Power and energy}
+\ccsdesc[500]{Hardware~Neural systems}
+\ccsdesc[300]{Computing methodologies~Machine learning}
 
+\copyrightyear{2019} 
+\acmYear{2019} 
+\setcopyright{acmlicensed}
+\acmConference[NICE '19]{Neuro-inspired Computational Elements Workshop}{March 26--28, 2019}{Albany, NY, USA}
+\acmBooktitle{Neuro-inspired Computational Elements Workshop (NICE '19), March 26--28, 2019, Albany, NY, USA}
+\acmPrice{15.00}
+\acmDOI{10.1145/3320288.3320304}
+\acmISBN{978-1-4503-6123-1/19/03}
 
-\begin{abstract} 
+%
+% Keywords. The author(s) should pick words that accurately describe the work being
+% presented. Separate the keywords with commas.
+\keywords{keyword spotting; speech recognition; machine learning; neuromorphic computing; spiking neural networks}
 
- Using Intel's Loihi neuromorphic research chip and ABR's Nengo Deep Learning toolkit, we analyze the inference speed, dynamic power consumption, and energy cost per inference of a two-layer neural network keyword spotter trained to recognize a single phrase. We perform comparative analyses of this keyword spotter running on more conventional hardware devices including a CPU, a GPU, Nvidia's Jetson TX1, and the Movidius Neural Compute Stick. Our results indicate that for this real-time inference application, Loihi outperforms all of these alternatives on an energy cost per inference basis while maintaining equivalent inference accuracy. Furthermore, an analysis of tradeoffs between network size, inference speed, and energy cost indicates that Loihi's comparative advantage over other low-power computing devices improves for larger networks.  
-
-\end{abstract} 
+% This command processes the author and affiliation and title information and builds
+% the first part of the formatted document.
+\maketitle
 
 \section{Introduction}
 
 Neuromorphic hardware consists of large numbers of neuron-like processing elements that communicate in parallel via spikes. The use of neuromorphic devices can provide substantial improvements in power efficiency and latency across a wide range of computational tasks. These improvements are largely due to (a) an event-driven model of computation that results in processing elements only emitting spikes (and thereby consuming energy) when necessary, and (b) a substantial amount of architectural parallelism that reduces the number of computational `steps' required to transform an input into an output. 
 
-\begin{figure}[ht!]
+\begin{figure}[!b]
 \centering
-    \includegraphics[width=3.2in]{./figures/per_inf_comparison.png}
+    \includegraphics[width=2.8in]{./figures/per_inf_comparison.png}
     \caption{Dynamic energy cost per inference across hardware devices. This metric is equal to the difference between the total energy consumed by the hardware device over the time it takes to perform one inference minus the energy consumed over the same amount of time while the hardware is idling. For the keyword spotter, one inference involves passing a feature vector through a feed-forward neural network with two hidden layers to predict a probability distribution over alphabetical characters.}
 \label{per_inf_fig}
 \end{figure}
 
-To provide a quantitative analysis of these expected benefits, we present the results of benchmarking a keyword spotting model running on Intel's new neuromorphic research processor, Loihi \cite{Davies:2018}. Keyword spotting involves monitoring a real-time audio stream for the purposes of detecting some keyword of interest (e.g. ``Hey Siri''). This task is useful for benchmarking neuromorphic devices because it (a) requires low-latency processing of real-time input signals, (b) benefits considerably from improvements in energy efficiency, and (c) has numerous practical applications in mobile and IoT devices.
 
 \begin{table*}[t!]
 \caption{Mean power consumption and energy cost per inference across hardware devices.} 
@@ -82,15 +152,15 @@ To provide a quantitative analysis of these expected benefits, we present the re
 \begin{sc}
 \begin{tabular}{lcccccc}
 \hline
-\abovespace\belowspace
+% \abovespace
 Hardware & Idle (W) & Running (W) & Dynamic (W) & Inf/Sec & Joules/Inf \\
 \hline
-\abovespace
+% \abovespace
 GPU & 14.97 & 37.83 & 22.86 & 770.39 & 0.0298 \\   
 CPU & 17.01 & 28.48 & 11.47 & 1813.63 & 0.0063 \\
 Jetson & 2.64 & 4.98 & 2.34 & 419 & 0.0056 \\
 Movidius & 0.210 & 0.647 & 0.437 & 300 & 0.0015 \\
-\belowspace
+% \belowspace
 Loihi & 0.029 & 0.110 & 0.081 & 296 & 0.00027 \\
 
 \hline
@@ -102,30 +172,41 @@ Loihi & 0.029 & 0.110 & 0.081 & 296 & 0.00027 \\
 \label{power-table}
 \end{table*}
 
+
+To provide a quantitative analysis of these expected benefits, we present the results of benchmarking a keyword spotting model running on Intel's new neuromorphic research processor, Loihi \cite{Davies:2018}. Keyword spotting involves monitoring a real-time audio stream for the purposes of detecting some keyword of interest (e.g. ``Hey Siri''). This task is useful for benchmarking neuromorphic devices because it (a) requires low-latency processing of real-time input signals, (b) benefits considerably from improvements in energy efficiency, and (c) has numerous practical applications in mobile and IoT devices.
+
 To investigate the relative power efficiency of different types of hardware running our keyword spotter, we perform experiments using the following devices: CPU (Xeon E5-2630), GPU (Quadro K4000), Jetson TX1, Movidius NCS, and Loihi (Wolf Mountain board). Below, the methodology for each experiment is reported, along with a detailed discussion of results. The same inference-only version of the keyword spotter running in TensorFlow (TF) is used in each non-spiking benchmark, achieving a test classification accuracy of 92.7\% across all hardware devices on a small dataset of spoken utterances we collected. A model that is architecturally identical to this TF model is then trained to work in the spiking domain \cite{Hunsberger:2016} and run with the Nengo neural simulator \cite{Bekolay:2014}, achieving a test classifcation accuracy of 93.8\% both in simulation and when running on Loihi.
+
 
 Overall, our comparisons indicate that Loihi is more power efficient on a cost-per-inference basis than alternative hardware devices in the context of this keyword spotting application (see Figure \ref{per_inf_fig} and Table \ref{power-table}), and more generally in the context of similar deep learning applications.
 
 In the remainder of this paper we describe the network and training methods in more detail, discuss our data collection methods, and present and discuss in-depth results. Code for reproducing our results is available at \url{https://github.com/abr/power\_benchmarks/}.
 
-\section{Methodology}
+\begin{figure}[!ht]
+\centering
+    \includegraphics[width=2.5in]{./figures/network.png}
+    \caption{Network topology for the keyword spotter run on all devices. All implementations of the network make use of the same TensorFlow computational graph and parameters, with the exception of the Loihi implementation, which has the same network structure but is run in spiking mode with Nengo. Layers are fully connected. On all devices, audio features are passed to the input layer and probability distributions over characters are read from the output layer, ensuring that identical amounts of computation are performed across all comparisons.}
+\label{network_fig}
+\end{figure}
 
+\section{Methodology}
 
 The purpose of the keyword spotting network is to take in an audio waveform corresponding to an utterance, and then predict a sequence of characters to ascertain whether the utterance contains some keyword of interest. The audio waveform is preprocessed by performing Fourier transforms on an overlapping series of windows to compute Mel-frequency Cepstral Coefficient (MFCC) features for each window. Windows of adjacent MFCC features are concatenated into frames and passed as input to the network, with the frames having a stride of 10ms.  
 
 \begin{table*}[t!]
-\vskip 0.15in
+\caption{Keyword spotting performance analysis. The spiking network on Loihi classifies examples as accurately as the non-spiking ANN in TensorFlow. The performance improvement seen on Loihi is not significant, since it amounts to the correct classification of a single additional test item.}
+% \vskip 0.15in
 \begin{center}
 \begin{small}
 \begin{sc}
 \begin{tabular}{lcccccc}
 \hline
-\abovespace\belowspace
+% \abovespace\belowspace
 Model & True Positive (\%) & False Negative (\%) & True Negative (\%) & False Positive (\%) \\
 \hline
-\abovespace
+% \abovespace
 TensorFlow & 92.7 & 7.3 & 97.9 & 2.1 \\   
-\belowspace
+% \belowspace
 Nengo Loihi & 93.8 & 6.2 & 97.9 & 2.1 \\
 
 \hline
@@ -133,18 +214,10 @@ Nengo Loihi & 93.8 & 6.2 & 97.9 & 2.1 \\
 \end{sc}
 \end{small}
 \end{center}
-\vskip -0.1in
-\caption{Keyword spotting performance analysis. The spiking network on Loihi classifies examples as accurately as the non-spiking ANN in TensorFlow. The performance improvement seen on Loihi is not significant, since it amounts to the correct classification of a single additional test item.}
+% \vskip -0.1in
 \label{acc-table}
 \end{table*}
 
-
-\begin{figure}[ht!]
-\centering
-    \includegraphics[width=2.5in]{./figures/network.png}
-    \caption{Network topology for the keyword spotter run on all devices. All implementations of the network make use of the same TensorFlow computational graph and parameters, with the exception of the Loihi implementation, which has the same network structure but is run in spiking mode with Nengo. On all devices, audio features are passed to the input layer and probability distributions over characters are read from the output layer, ensuring that identical amounts of computation are performed across all comparisons.}
-\label{network_fig}
-\end{figure}
 
 Once a frame (390 dimensions) is provided as input to the network, it is passed through two 256-dimensional hidden layers and then used to predict a 29-dimensional output vector that corresponds to a probability distribution over alphabetical characters. Figure \ref{network_fig} provides a visual depiction of this network topology. Passing all frames derived from the initial audio waveform through the network yields a sequence of character predictions that gets collapsed by merging repeated characters and stripping out special characters corresponding to letter repetitions and silence. 
 
@@ -230,7 +303,7 @@ To explain, the mean idle power consumption is subtracted from the mean runtime 
 
 Since the energy cost per inference is highest for CPU and GPU, it is useful to look at how this energy cost changes as we modify the batchsize during inference. In the case of the GPU in particular, increasing the batchsize should increase energy efficiency by reducing the need to move data on and off the GPU before and after each individual inference. Figure \ref{batchsize_fig} indicates that, as one would expect, energy efficiency increases with batchsize, since all of the compute associated with feeding inputs and collecting outputs is only performed once per batch instead of once per inference. The flat lines on the graph indicate the energy cost per inference for Movidius and Loihi, so as to indicate the approximate batchsize at which generic hardware becomes comparable to these low-power alternatives from an efficiency perspective. Notably, both of these platforms only support a batch size of 1. In the case of Loihi this is because deployment is geared to real-time, interactive applications.
 
-Figure \ref{comp_fig} displays the results of an experiment in which additional hidden layers are added to the model in accordance with the network topology in Figure \ref{scaled_network_fig}, but the batchsize is fixed at one. This keeps I/O fixed while varying the amount of computation required to perform an inference. Note, however, that since we cannot performance inference using our trained model parameters (which are for a different network structure), we are concerned only with how inference speed and cost-per-inference scale with model size. In other words, we are ignoring functionality (i.e., the network's weight values) and focusing only on tradeoffs between inference speed, inference cost, and network size. To a provide a linear increase in computation as a function of our independent variable N, we scale the network by adding multiple branches of multiple layers between the first and second hidden layers in the original model architecture, as shown in Figure \ref{scaled_network_fig}. As expected, inference speed decreases monotonically for all devices, while energy cost per inference increases monotonically. Dynamic power consumption also generally increases monotonically, except in the case of the CPU results. We speculate that the observed variability in dynamic power here has to do with how computations are allocated across cores as the ntework size (and corresponding compute load) increases.
+Figure \ref{comp_fig} displays the results of an experiment in which additional hidden layers are added to the model in accordance with the network topology in Figure \ref{scaled_network_fig}, but the batchsize is fixed at one. This keeps I/O fixed while varying the amount of computation required to perform an inference. Note, however, that since we cannot performance inference using our trained model parameters (which are for a different network structure), we are concerned only with how inference speed and cost-per-inference scale with model size. In other words, we are ignoring functionality (i.e., the network's weight values) and focusing only on tradeoffs between inference speed, inference cost, and network size. To provide a linear increase in computation as a function of our independent variable N, we scale the network by adding multiple branches of multiple layers between the first and second hidden layers in the original model architecture, as shown in Figure \ref{scaled_network_fig}. As expected, inference speed decreases monotonically for all devices, while energy cost per inference increases monotonically. Dynamic power consumption also generally increases monotonically, except in the case of the CPU results. We speculate that the observed variability in dynamic power here has to do with how computations are allocated across cores as the network size (and corresponding compute load) increases.
 
 Since Movidius is closest to Loihi from an efficiency perspective, it is useful to provide a more detailed analysis of how energy consumption and inference speed change as a function of network size in the two devices. Figure \ref{scaling_fig} illustrates how dynamic energy consumption, inference speed, and energy cost per inference change as a function of network size. Although the dynamic power consumption and cost per inference for Loihi appears to be flat in comparison to Movidius, Figure \ref{loihi_fig} indicates that, as expected, both metrics increase monotonically with network size. Moreover, Loihi's modest rate of increase in comparison to Movidius indicates a sizeable scaling advantage. This advantage likely arises both because Loihi's inherent architectural parallelism allows inference speed to remain roughly constant as a function of network size, and because the temporal sparsity and data locality of a spiking network leads total power consumption to increase much more slowly as function of network size. Together, these two factors enable Loihi to provide increasingly large performance and energy efficiency improvements over Movidius as network size grows. 
 
@@ -244,15 +317,19 @@ Overall, we have demonstrated that running a keyword spotting application on a s
 
 Overall, these scaling properties translate into significant energy efficiency improvements for large networks in comparsion to the closest alternative low-power device we tested, the Movidius NCS. These efficiency gains importantly come with no cost to model accuracy. Given as much, efforts to program neuromorphic devices to perform more sophisticated computational tasks are likely to yield significant benefits. 
 
-\section*{Acknowledgements}
 
+% The acknowledgments section is defined using the "acks" environment (and NOT an unnumbered section). This ensures
+% the proper identification of the section in the article metadata, and the consistent spelling of the heading.
+\begin{acks}
 We thank Trevor Bekolay, Terry Stewart, and Dan Rasmussen for helpful suggestions regarding the software used to run the keyword spotter across all devices.
+\end{acks}
 
 \section*{Code and Data} 
  
 Code, data, and instructions for reproducing the results in this technical report are available at \url{https://github.com/abr/power\_benchmarks/}.
+%
+% The next two lines define the bibliography style to be used, and the bibliography file.
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{power_summary_acm_format}
 
-\bibliography{power_summary}
-\bibliographystyle{template}
-
-\end{document} 
+\end{document}

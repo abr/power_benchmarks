@@ -139,7 +139,7 @@ To plot the results of the experiments and replicate the graphs in the paper, ru
 
 .. code-block:: bash
    
-  python analysis/summary.py --idle_dir=./logs/idle --running_dir=./logs/running
+  python analysis/summary.py --baseline_dir=./logs/idle --log_dir=./logs/running
 
 This will display a series of plots and write them to file for inclusion the paper when it compiled to a PDF. To compile the paper, do the following:
   
