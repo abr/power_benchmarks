@@ -2,13 +2,15 @@ import argparse
 import pickle
 import numpy as np
 
-from models import TensorflowModel, MovidiusModel
-from utils import compute_tf_stats
+from models import TensorflowModel, MovidiusModel, MovidiusModelV2, TPUModel
+from utils import compute_tf_stats 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpu", action="store_true")
 parser.add_argument("--gpu", action="store_true")
+parser.add_argument("--tpu", action="store_true")
 parser.add_argument("--movidius", action="store_true")
+parser.add_argument("--movidius_2", action="store_true")
 parser.add_argument("--mov_graph", type=str)
 args = parser.parse_args()
 
@@ -32,6 +34,12 @@ if args.cpu or args.gpu:
 elif args.movidius:
     model = MovidiusModel()
     model.load_graph(args.mov_graph)
+
+elif args.movidius_2:
+    model = MovidiusModelV2()
+
+elif args.tpu:
+    model = TPUModel()
 
 else:
     raise Exception('No hardware specified to run accuracy check on!')

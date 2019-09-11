@@ -1,7 +1,7 @@
 import string
 import warnings
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 
 # attempt to import movidius V1 api, won't work in conda environment
 try:
@@ -23,7 +23,7 @@ except ImportError:
 # attempt to import movidius V2 api, might work in conda environment
 try:
     from openvino.inference_engine import IENetwork, IEPlugin
-    
+
     model_bin = './checkpoints/movidius.bin'
     model_xml = './checkpoints/movidius.xml'
 
@@ -33,6 +33,9 @@ try:
 
     input_blob = next(iter(network.inputs))
     output_blob = next(iter(network.outputs))
+
+    print(network.batch_size)
+    print(network.precision)
 
 except ImportError:
     warnings.warn('NCS OpenVino API not installed', UserWarning)
@@ -362,6 +365,10 @@ class MovidiusModelV2(BaseModel):
         idx = np.argmax(outputs)
 
         return self.id_to_char[idx]
+
+    def close_graph(self):
+        '''Shut everything down on the NCS 2'''
+        pass  # dummy method, avoids change to experiment script
 
 
 class TPUModel(BaseModel):
