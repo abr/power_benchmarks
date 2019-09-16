@@ -55,3 +55,11 @@ download_and_unzip(
 
 # delete leftover zip files         
 os.remove('./benchmark_data.zip')
+
+# download pickled data handler     
+download_and_unzip(
+    gdrive_id='13JAKf2foL48DH8DO_RD_hx8MCxSdtCcu',
+    filename='./abr_keyword_dataset.zip', path='./training/')       
+
+# delete leftover zip files         
+os.remove('./abr_keyword_dataset.zip')

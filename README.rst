@@ -2,7 +2,7 @@
 ABR Keyword Spotting Power Benchmarks
 *************************************
 
-This repository contains power benchmarking code for running a simple two-layer, 256 neuron per layer neural network keyword spotter on both neuromorphic and conventional hardware devices. On conventional devices a Tensorflow version of the keyword spotter is used, while on neuromorphic devices (Loihi), an architecturally identical Nengo version is used. This repo contains instructions for running power benchmarking trials, plotting the associated results, and reproducing our `paper <https://arxiv.org/abs/1812.01739>`_ summarizing these results. 
+This repository contains power benchmarking code for running a simple two-layer, 256 neuron per layer neural network keyword spotter on both neuromorphic and conventional hardware devices. On conventional devices a Tensorflow version of the keyword spotter is used, while on neuromorphic devices (Loihi), an architecturally identical Nengo version is used. This repo contains instructions for running power benchmarking trials, plotting the associated results, and reproducing our `paper <https://arxiv.org/abs/1812.01739>`_ summarizing these results. The `training` subdirectory includes scripts for training the model from scratch using raw audio files, and contains further instructions for doing so. Running :code:`python download.py` from within this directory will download the data for training the model, and along with reformatted training and testing datasets that already include preprocessing and alignment. This reformatted data is used in the benchmarks included here.
 
 
 **Installation**
@@ -15,7 +15,9 @@ To start, you can make an Anaconda environment (or a virtualenv along the same l
  conda create -n benchmarks python=3.6
  conda activate benchmarks
  conda install -c anaconda tensorflow-gpu
+ # conda install -c conda-forge tensorflow  # if no gpu
  pip install s-tui
+ pip install nengo
 
  conda install seaborn
  conda install pandas
