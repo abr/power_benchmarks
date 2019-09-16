@@ -12,7 +12,10 @@ TFSample = namedtuple(
     'TFSample', ['audio', 'text', 'speaker_id', 'sample_id', 'wav_path'])
 
 NengoSample = namedtuple(
-    'NengoSample', ['arrays', 'text', 'speaker_id', 'sample_id'])
+   'NengoSample', ['arrays', 'text', 'speaker_id', 'sample_id'])
+
+# permissible transcriptions for computing accuracy stats
+allowed_text = ['loha', 'alha', 'aloa', 'aloh', 'aoha', 'aloha']
 
 
 class TurkHandler(object):
@@ -179,11 +182,6 @@ class TurkHandler(object):
             write_path = os.path.join(path, str(item.sample_id) + '.wav')
             librosa.output.write_wav(write_path, item.audio, sr=16000)
 
-        #  items = [x for x in self.train_data if x.speaker_id == 39]
-        # for item in items:
-        #     write_path = os.path.join(path, str(item.sample_id) + '.wav')
-        #     librosa.output.write_wav(write_path, item.audio, sr=16000)
-
 
 def build_arrays(ce_data, n_steps=1, stream=False):
     '''Convert CE formatted data to arrays for use with Nengo DL nodes'''
@@ -241,3 +239,46 @@ def with_graph(method):
             return method(self, *args, **kwargs)
 
     return add_to_graph
+
+
+def compute_stats(model, data):
+    '''Compute True/False Pos/Neg stats for Tensorflow keyword model'''
+    stats = {
+        "fp":0,
+        "tp":0,
+        "fn":0,
+        "tn":0,
+        "aloha": 0,
+        "not-aloha": 0
+    }
+
+    for features, text in data:
+        inputs = np.squeeze(features)
+
+        chars = []
+        for window in inputs:
+            char = model.predict_text(np.expand_dims(window, axis=0))
+            chars.append(char)
+
+        predicted_chars = merge(merge(''.join(chars)))
+
+        if text == 'aloha':
+            stats["aloha"] += 1
+            if predicted_chars in allowed_text:
+                stats["tp"] += 1
+            else:
+                stats["fn"] += 1
+        else:
+            stats["not-aloha"] += 1
+            if predicted_chars in allowed_text:
+                stats["fp"] += 1
+            else:
+                stats["tn"] += 1
+
+    print("Summary")
+    print("=======")
+    print("True positive rate:\t%.3f" % (stats["tp"] / stats["aloha"]))
+    print("False negative rate:\t%.3f" % (stats["fn"] / stats["aloha"]))
+    print()
+    print("True negative rate:\t%.3f" % (stats["tn"] / stats["not-aloha"]))
+    print("False positive rate:\t%.3f" % (stats["fp"] / stats["not-aloha"]))

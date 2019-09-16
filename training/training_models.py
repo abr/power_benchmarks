@@ -1,16 +1,17 @@
+import features
 import pickle
 import random
 import string
+
 import numpy as np
 import tensorflow as tf
 
 from copy import deepcopy
-import features
-from utils import with_graph, normalize
-from utils import NengoSample, build_arrays, convert_to_onehot
+from training_utils import with_graph, normalize
+from training_utils import NengoSample, build_arrays, convert_to_onehot
 
 
-class TFSpeechModel(object):
+class CTCSpeechModel(object):
     """Feedforward neural network model that performs a combination of speech
     recognition and speaker identification. The model takes a sequence of audio
     features as input (from a sliding window over the raw audio waveform), and
@@ -450,6 +451,13 @@ class TFSpeechModel(object):
         with open(filename, 'wb') as pfile:
             pickle.dump(params, pfile, protocol=2)
 
+    def save_quantized_model(self, filename):
+        '''Save protobuff file for model with quantization aware training'''
+        tf.contrib.quantize.create_eval_graph(input_graph=self.graph)
+        # Save the checkpoint and eval graph proto to disk for freezing
+        with open(filename, 'w') as f:
+            f.write(str(self.graph.as_graph_def()))
+
     def id_error_rate(self, dataset, use_d_vectors=False):
         '''Compute ID prediction error rate using supplied dataset'''
         count = 0
@@ -503,3 +511,141 @@ class TFSpeechModel(object):
             nengo_data = build_arrays(ce_data, n_steps, stream=stream)
 
         return nengo_data
+
+
+class FFSpeechModel(CTCSpeechModel):
+    """Train a feedforward MLP to predict the target character distributions
+    learned by a speech model trained with the CTC objective function. This
+    results in model trained comparably to SNN models run on neuromorphic 
+    hardware like Intel's Loihi chip. The CTC model is learning to align 
+    particular audio feature windows with particular character labels, and 
+    once this alignment is performed, the feedforward model learns this mapping
+    directly.
+
+    Parameters:
+    ----------
+    n_per_layers: int (optional)
+        The dimensionality of each hidden layer in the model.
+    n_layers: int (optional)
+        The number of hidden layers in the model.
+    checkpoints: filepath (optional)
+        Name of the checkpoint file to save/load with.
+    """
+    def __init__(self, n_per_layer=256, n_layers=2, checkpoints=None):
+
+        self.checkpoints = checkpoints
+        self.n_per_layer = n_per_layer
+        self.n_layers = n_layers
+        self.n_shared = 0
+        self.n_features = 26
+        self.n_frames = 15
+
+        self.reset()
+        self.init = tf.contrib.layers.variance_scaling_initializer()
+
+        char_list = string.ascii_lowercase + '\' -'
+
+        self.char_to_id = {c: i for i, c in enumerate(char_list)}
+        self.id_to_char = {i: c for i, c in enumerate(char_list)}
+        self.n_chars = len(char_list)
+
+    @with_graph
+    def build(self, decay_steps=8000, decay_rate=0.7, quantize=False):
+        '''Build all necessary ops into the object's tensorflow graph'''
+        if self.built:
+            raise RuntimeError("Graph has already been built! Please reset.")
+
+        self.rate = tf.placeholder(tf.float32, shape=[])
+
+        global_step = tf.Variable(0, trainable=False)
+        learning_rate = tf.train.exponential_decay(
+            self.rate, global_step, decay_steps, decay_rate, staircase=False)
+
+        self.inputs = tf.placeholder(tf.float32, [None, None])
+        self.targets = tf.placeholder(tf.int32, [None, None])
+        
+        # build the feedforward branch of the network
+        char_scopes = ['char_layer_' + str(n) for n in range(self.n_layers)]
+        char_out_scope = 'char_output'
+
+        x_char = self.build_ff_branch(self.inputs, char_scopes)
+        self.char_out = self.ff_layer(x_char, self.n_per_layer, self.n_chars,
+                                 char_out_scope, logits=True)
+        
+        self.cost = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(
+                labels=self.targets, logits=self.char_out))
+        
+        if quantize:
+            tf.contrib.quantize.create_training_graph(input_graph=self.graph)
+
+        # build the loss and an op for doing parameter updates
+        tvars = tf.trainable_variables()
+        grads = tf.gradients(self.cost, tvars)
+        grads, _ = tf.clip_by_global_norm(grads, 5.0)  # avoid explosions
+
+        optimizer = tf.train.RMSPropOptimizer(learning_rate)
+
+        self.train_step = optimizer.apply_gradients(zip(grads, tvars),
+                                                    global_step=global_step)
+        
+
+        self.built = True
+
+    def train(self, data, rate, bsize=64, n_epochs=10, resume=False):
+        '''Train the model on a dataset of unbatched audio/text pairs'''
+        if resume:
+            self.load(self.checkpoints)
+        else:
+            self.reset()
+            self.build()
+            self.start_session()
+
+        accum_loss = 0
+
+        # create batches from learned alignments
+        inputs = np.squeeze(data['inp'])
+        targets = np.squeeze(data['out'])
+
+        batches = []
+
+        for idx in range(0, len(inputs), bsize):
+            batch_inputs = inputs[idx:idx + bsize]
+            batch_targets = targets[idx:idx + bsize]
+
+            batch = (batch_inputs, batch_targets)
+            batches.append(batch)
+
+        for epoch in range(n_epochs):
+            random.shuffle(batches)
+
+            for batch in batches:
+
+                feed_dict = {self.rate: rate,
+                             self.inputs: batch[0],
+                             self.targets: batch[1]}
+
+                cost, _ = self.sess.run([self.cost, self.train_step],
+                                        feed_dict=feed_dict)
+
+                # TF warnings are sufficient, don't want inf cost for epoch
+                if not np.isinf(cost):
+                    accum_loss += cost
+
+            print("Status: Epoch %d" % int(epoch + 1))
+            print("Avg. loss: %2f" % (accum_loss / int(len(batches))))
+            accum_loss = 0
+
+        self.saver.save(self.sess, self.checkpoints)
+
+    @with_graph
+    def predict_text(self, inputs):
+        '''Feed data through the inference graph to predict text'''
+        self.check_build_status()
+
+        feed_dict = {self.inputs: inputs}
+        outputs = self.sess.run(self.char_out, feed_dict=feed_dict)
+
+        ids = np.argmax(outputs, axis=1)
+        text = ''.join(self.id_to_char[i] for i in ids)
+
+        return text
