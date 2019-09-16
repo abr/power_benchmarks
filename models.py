@@ -1,7 +1,7 @@
 import string
 import warnings
 import numpy as np
-# import tensorflow as tf
+import tensorflow as tf
 
 # attempt to import movidius V1 api, won't work in conda environment
 try:
@@ -33,9 +33,6 @@ try:
 
     input_blob = next(iter(network.inputs))
     output_blob = next(iter(network.outputs))
-
-    print(network.batch_size)
-    print(network.precision)
 
 except ImportError:
     warnings.warn('NCS OpenVino API not installed', UserWarning)
