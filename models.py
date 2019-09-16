@@ -23,7 +23,7 @@ except ImportError:
 # attempt to import movidius V2 api, might work in conda environment
 try:
     from openvino.inference_engine import IENetwork, IEPlugin
-    
+
     model_bin = './checkpoints/movidius.bin'
     model_xml = './checkpoints/movidius.xml'
 
@@ -362,6 +362,10 @@ class MovidiusModelV2(BaseModel):
         idx = np.argmax(outputs)
 
         return self.id_to_char[idx]
+
+    def close_graph(self):
+        '''Shut everything down on the NCS 2'''
+        pass  # dummy method, avoids change to experiment script
 
 
 class TPUModel(BaseModel):

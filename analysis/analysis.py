@@ -27,6 +27,8 @@ def filestring_to_hardware(filestring):
         hardware = 'CPU'
     elif 'gpu' in filestring:
         hardware = 'GPU'
+    elif 'ncs2' in filestring:
+        hardware = 'NCS2'
     elif 'movidius' in filestring:
         hardware = 'MOVIDIUS'
     elif 'loihi' in filestring:

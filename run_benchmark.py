@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--cpu", action="store_true")
 parser.add_argument("--gpu", action="store_true")
 parser.add_argument("--movidius", action="store_true")
+parser.add_argument("--movidius_2", action="store_true")
 parser.add_argument("--mov_graph", type=str)
 parser.add_argument("--tpu", action="store_true")
 parser.add_argument("--tpu_graph", type=str)
@@ -67,11 +68,18 @@ if args.cpu or args.gpu:
 
 # handles the case of using the movidius NCS
 elif args.movidius:
-    model = MovidiusModelV2()
-    # model.load_graph(args.mov_graph)
+    model = MovidiusModel()
+    model.load_graph(args.mov_graph)
 
     hardware = 'MOVIDIUS'
 
+# handles the case of using the movidius NCS 2
+elif args.movidius_2:
+    model = MovidiusModelV2()
+
+    hardware = 'MOVIDIUS_2'
+
+# handles the case of using the Coral TPU Board
 elif args.tpu:
     model = TPUModel()
     
