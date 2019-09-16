@@ -1,0 +1,1 @@
+{"hardware": "NCS2", "start_time": "2019-09-10_15:29:17", "end_time": "2019-09-10_15:44:17", "nx_neurons": 1, "n_copies": 1, "n_layers": null, "n_seconds": 900, "n_inferences": 418102, "inf_per_second": 464.5577777777778, "batchsize": 1, "log_name": "ncs2_ncopies_1.json", "status": "Running"}
