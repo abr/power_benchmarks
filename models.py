@@ -1,7 +1,7 @@
 import string
 import warnings
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 
 from utils import quantize 
 
@@ -383,20 +383,20 @@ class TPUModel(BaseModel):
         # TODO: add use of interpreter with uncompiled file to avoid this
         self.inp_details = {'name': 'inputs',
                             'index': 10,
-                            'shape': array([  1, 390], dtype=int32),
-                            'dtype': <class 'numpy.uint8'>,
+                            'shape': np.array([1, 390]),
+                            'dtype': np.uint8,
                             'quantization': (0.6886264085769653, 153)}
 
         self.out_details = {'name': 'copy_0/char_output/outputs',
                             'index': 11,
-                            'shape': array([ 1, 29], dtype=int32),
-                            'dtype': <class 'numpy.uint8'>,
+                            'shape': np.array([1, 29]),
+                            'dtype': np.uint8,
                             'quantization': (3.6972694396972656, 213)}
 
     def predict_text(self, features):
         '''Predict a single character from a feature input window'''
         features = quantize(self.inp_details, features)
-        _, res = self.tpu_engine.RunInference(features)
+        _, res = self.tpu_engine.RunInference(np.squeeze(features))
         idx = np.argmax(res)
 
         return self.id_to_char[idx]
