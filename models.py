@@ -3,6 +3,10 @@ import warnings
 import numpy as np
 import tensorflow as tf
 
+from utils import quantize 
+
+
+
 # attempt to import movidius V1 api, won't work in conda environment
 try:
     from mvnc import mvncapi as mvnc
@@ -27,12 +31,12 @@ try:
     model_bin = './checkpoints/movidius.bin'
     model_xml = './checkpoints/movidius.xml'
 
-    plugin = IEPlugin(device='MYRIAD')
-    network = IENetwork(model=model_xml, weights=model_bin)
-    exec_net = plugin.load(network=network)
+    # plugin = IEPlugin(device='MYRIAD')
+    # network = IENetwork(model=model_xml, weights=model_bin)
+    # exec_net = plugin.load(network=network)
 
-    input_blob = next(iter(network.inputs))
-    output_blob = next(iter(network.outputs))
+    # input_blob = next(iter(network.inputs))
+    # output_blob = next(iter(network.outputs))
 
 except ImportError:
     warnings.warn('NCS OpenVino API not installed', UserWarning)
@@ -41,8 +45,6 @@ except ImportError:
 try:
     from edgetpu.basic.basic_engine import BasicEngine
     
-    model_path = './checkpoints/movidius_edgetpu.tflite'
-    tpu_engine = BasicEngine(model_path)
 
 except ImportError:
     warnings.warn('EdgeTPU API not installed', UserWarning)
@@ -371,9 +373,30 @@ class MovidiusModelV2(BaseModel):
 class TPUModel(BaseModel):
     """An inference-only version of speech model running on Coral Edge TPU"""
 
+    def __init__(self, model_path):
+
+        super().__init__()
+
+        self.tpu_engine = BasicEngine(model_path)
+
+        # hardcode these from TFLite interpreter to enable input quantization
+        # TODO: add use of interpreter with uncompiled file to avoid this
+        self.inp_details = {'name': 'inputs',
+                            'index': 10,
+                            'shape': array([  1, 390], dtype=int32),
+                            'dtype': <class 'numpy.uint8'>,
+                            'quantization': (0.6886264085769653, 153)}
+
+        self.out_details = {'name': 'copy_0/char_output/outputs',
+                            'index': 11,
+                            'shape': array([ 1, 29], dtype=int32),
+                            'dtype': <class 'numpy.uint8'>,
+                            'quantization': (3.6972694396972656, 213)}
+
     def predict_text(self, features):
         '''Predict a single character from a feature input window'''
-        _, res = tpu_engine.RunInference(np.squeeze(features).astype(np.uint8))
+        features = quantize(self.inp_details, features)
+        _, res = self.tpu_engine.RunInference(features)
         idx = np.argmax(res)
 
         return self.id_to_char[idx]

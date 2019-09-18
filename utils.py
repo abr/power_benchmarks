@@ -49,6 +49,20 @@ def predict_text(sim, char_probe, n_steps, p_time):
 
     return text
 
+def quantize(data_spec, data):
+    '''Quantize input data in accord with TFLite input spec'''
+    shape = data_spec['shape']
+    dtype = data_spec['dtype']
+    a, b = data_spec['quantization']
+    
+    return (data/a + b).astype(dtype).reshape(shape)
+
+
+def dequantize(data_spec, data):
+    '''Convert quantized data back to float in accord with TFLite input spec'''
+    a, b = data_spec['quantization']
+    
+    return (data - b)*a
 
 def download(fname, drive_id):
     '''Download a file from Google Drive.

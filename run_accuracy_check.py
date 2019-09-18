@@ -12,6 +12,7 @@ parser.add_argument("--tpu", action="store_true")
 parser.add_argument("--movidius", action="store_true")
 parser.add_argument("--movidius_2", action="store_true")
 parser.add_argument("--mov_graph", type=str)
+parser.add_argument("--tpu_model", type=str)
 args = parser.parse_args()
 
 # load parameters and data
@@ -39,7 +40,7 @@ elif args.movidius_2:
     model = MovidiusModelV2()
 
 elif args.tpu:
-    model = TPUModel()
+    model = TPUModel(args.tpu_model)
 
 else:
     raise Exception('No hardware specified to run accuracy check on!')
