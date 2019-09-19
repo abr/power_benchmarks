@@ -5,7 +5,7 @@ import time
 import numpy as np
 
 from datetime import datetime
-from models import TensorflowModel, MovidiusModel, MovidiusModelV2, ScaledModel
+from models import TensorflowModel, MovidiusModel, MovidiusModelV2, ScaledModel, TPUModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpu", action="store_true")
