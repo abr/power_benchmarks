@@ -14,7 +14,7 @@ parser.add_argument("--movidius", action="store_true")
 parser.add_argument("--movidius_2", action="store_true")
 parser.add_argument("--mov_graph", type=str)
 parser.add_argument("--tpu", action="store_true")
-parser.add_argument("--tpu_model", type=str)
+parser.add_argument("--tpu_graph", type=str)
 parser.add_argument("--bsize", type=int)
 parser.add_argument("--n_copies", type=int)
 parser.add_argument("--n_layers", type=int)
@@ -81,8 +81,8 @@ elif args.movidius_2:
 
 # handles the case of using the Coral TPU Board
 elif args.tpu:
-    model = TPUModel(args.tpu_model)
-    
+    model = TPUModel(args.tpu_graph)
+
     hardware = 'TPU'
 
 else:
