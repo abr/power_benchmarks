@@ -387,13 +387,13 @@ class TPUModel(BaseModel):
                             'index': 10,
                             'shape': np.array([1, 390]),
                             'dtype': np.uint8,
-                            'quantization': (0.6886264085769653, 153)}
+                            'quantization': (0.7632800340652466, 131)} 
 
         self.out_details = {'name': 'copy_0/char_output/outputs',
                             'index': 11,
                             'shape': np.array([1, 29]),
                             'dtype': np.uint8,
-                            'quantization': (3.6972694396972656, 213)}
+                            'quantization': (4.331908226013184, 214)} 
 
     def predict_text(self, features):
         '''Predict a single character from a feature input window'''
