@@ -146,7 +146,7 @@ class CTCSpeechModel(object):
             b = tf.get_variable('biases', shape=[size_out],
                                 initializer=self.init)
         if logits:
-            activations = tf.nn.xw_plus_b(inputs, w, b)
+            activations = tf.nn.xw_plus_b(inputs, w, b, name='outputs')
         else:
             activations = tf.nn.relu(tf.nn.xw_plus_b(inputs, w, b))
 
@@ -181,10 +181,6 @@ class CTCSpeechModel(object):
 
             self.sess.run(tf.global_variables_initializer())
             self.saver = tf.train.Saver()
-
-            self.sess = tf.Session(config=config)
-            self.sess.run(tf.global_variables_initializer())
-
         else:
             raise RuntimeError("No graph exists to start a session with!")
 
@@ -453,10 +449,21 @@ class CTCSpeechModel(object):
 
     def save_quantized_model(self, filename):
         '''Save protobuff file for model with quantization aware training'''
+        self.reset()
+        self.build(eval_graph=True)
+
         tf.contrib.quantize.create_eval_graph(input_graph=self.graph)
-        # Save the checkpoint and eval graph proto to disk for freezing
-        with open(filename, 'w') as f:
-            f.write(str(self.graph.as_graph_def()))
+        eval_graph_def = self.graph.as_graph_def()
+        self.start_session()
+        self.saver.restore(self.sess, self.checkpoints)
+
+        frozen_graph_def = tf.graph_util.convert_variables_to_constants(
+            self.sess,
+            eval_graph_def,
+            ['outputs'])
+
+        with open(filename, 'wb') as f:
+            f.write(frozen_graph_def.SerializeToString())
 
     def id_error_rate(self, dataset, use_d_vectors=False):
         '''Compute ID prediction error rate using supplied dataset'''
@@ -531,7 +538,8 @@ class FFSpeechModel(CTCSpeechModel):
     checkpoints: filepath (optional)
         Name of the checkpoint file to save/load with.
     """
-    def __init__(self, n_per_layer=256, n_layers=2, checkpoints=None):
+    def __init__(self, n_per_layer=256, n_layers=2, checkpoints=None,
+                 quantize=False):
 
         self.checkpoints = checkpoints
         self.n_per_layer = n_per_layer
@@ -539,6 +547,7 @@ class FFSpeechModel(CTCSpeechModel):
         self.n_shared = 0
         self.n_features = 26
         self.n_frames = 15
+        self.quantize = quantize
 
         self.reset()
         self.init = tf.contrib.layers.variance_scaling_initializer()
@@ -550,20 +559,15 @@ class FFSpeechModel(CTCSpeechModel):
         self.n_chars = len(char_list)
 
     @with_graph
-    def build(self, decay_steps=8000, decay_rate=0.7, quantize=False):
+    def build(self, decay_steps=8000, decay_rate=0.7):
         '''Build all necessary ops into the object's tensorflow graph'''
         if self.built:
             raise RuntimeError("Graph has already been built! Please reset.")
-
-        self.rate = tf.placeholder(tf.float32, shape=[])
-
-        global_step = tf.Variable(0, trainable=False)
-        learning_rate = tf.train.exponential_decay(
-            self.rate, global_step, decay_steps, decay_rate, staircase=False)
-
-        self.inputs = tf.placeholder(tf.float32, [None, None])
-        self.targets = tf.placeholder(tf.int32, [None, None])
         
+        # need to set dimensionalities for eventual TFLite conversion
+        self.targets = tf.placeholder(tf.int32, [None, 29])
+        self.inputs = tf.placeholder(tf.float32, [None, 390], name='inputs')
+
         # build the feedforward branch of the network
         char_scopes = ['char_layer_' + str(n) for n in range(self.n_layers)]
         char_out_scope = 'char_output'
@@ -575,19 +579,26 @@ class FFSpeechModel(CTCSpeechModel):
         self.cost = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(
                 labels=self.targets, logits=self.char_out))
         
-        if quantize:
+        if self.quantize:
+            print('Using quantization-aware training!')
             tf.contrib.quantize.create_training_graph(input_graph=self.graph)
 
         # build the loss and an op for doing parameter updates
+        self.rate = tf.placeholder(tf.float32, shape=[])
+
+        global_step = tf.Variable(0, trainable=False)
+        learning_rate = tf.train.exponential_decay(
+            self.rate, global_step, decay_steps, decay_rate,
+            staircase=False)
+
         tvars = tf.trainable_variables()
         grads = tf.gradients(self.cost, tvars)
         grads, _ = tf.clip_by_global_norm(grads, 5.0)  # avoid explosions
 
         optimizer = tf.train.RMSPropOptimizer(learning_rate)
 
-        self.train_step = optimizer.apply_gradients(zip(grads, tvars),
-                                                    global_step=global_step)
-        
+        self.train_step = optimizer.apply_gradients(
+            zip(grads, tvars), global_step=global_step)
 
         self.built = True
 
