@@ -1,10 +1,9 @@
 import string
 import warnings
 import numpy as np
-# import tensorflow as tf
+import tensorflow as tf
 
 from utils import quantize 
-
 
 
 # attempt to import movidius V1 api, won't work in conda environment
@@ -31,13 +30,6 @@ try:
     model_bin = './checkpoints/movidius.bin'
     model_xml = './checkpoints/movidius.xml'
 
-    # plugin = IEPlugin(device='MYRIAD')
-    # network = IENetwork(model=model_xml, weights=model_bin)
-    # exec_net = plugin.load(network=network)
-
-    # input_blob = next(iter(network.inputs))
-    # output_blob = next(iter(network.outputs))
-
 except ImportError:
     warnings.warn('NCS OpenVino API not installed', UserWarning)
 
@@ -45,7 +37,6 @@ except ImportError:
 try:
     from edgetpu.basic.basic_engine import BasicEngine
     
-
 except ImportError:
     warnings.warn('EdgeTPU API not installed', UserWarning)
 
@@ -356,6 +347,17 @@ class MovidiusModel(BaseModel):
 
 class MovidiusModelV2(BaseModel):
     """An inference-only version of speech model running on Movidius NCS 2"""
+    
+    def __init__(self):
+
+        super().__init__()
+
+        self.plugin = IEPlugin(device='MYRIAD')
+        self.network = IENetwork(model=model_xml, weights=model_bin)
+        self.exec_net = plugin.load(network=network)
+
+        self.input_blob = next(iter(network.inputs))
+        self.output_blob = next(iter(network.outputs))
 
     def predict_text(self, features):
         '''Predict a single character from a feature input window'''
