@@ -1,0 +1,1 @@
+{"hardware": "TPU", "n_seconds": 900, "log_name": "tpu_bsize_1.json", "inf_per_second": 3201.52, "n_copies": 1, "status": "Running", "n_layers": null, "end_time": "2019-09-19_18:08:53", "n_inferences": 2881368, "nx_neurons": 1, "start_time": "2019-09-19_17:53:53", "batchsize": 1}
