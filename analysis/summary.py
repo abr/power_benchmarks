@@ -64,7 +64,7 @@ for prefix in run_file_prefixes:
 all_samples = idle_samples + run_samples
 
 dframe = pandas.DataFrame(all_samples)
-order = ['CPU', 'GPU', 'JETSON', 'NCS2', 'MOVIDIUS', 'LOIHI']
+order = ['CPU', 'GPU', 'JETSON', 'NCS2', 'MOVIDIUS', 'LOIHI', 'TPU']
 
 # TABLE 1: Power, energy cost for all hardware devices
 
@@ -75,6 +75,7 @@ joules_dframe = dframe.loc[(dframe['batchsize'] == 1) &
                            (dframe['nx_neurons'] == 1)]
 
 # compute means over all samples for each hardware device
+mean_tpu = joules_dframe.loc[joules_dframe['hardware'] == 'TPU'].mean()
 mean_loihi = joules_dframe.loc[joules_dframe['hardware'] == 'LOIHI'].mean()
 mean_ncs2 = joules_dframe.loc[joules_dframe['hardware'] == 'NCS2'].mean()
 mean_movidius = joules_dframe.loc[joules_dframe['hardware'] == 'MOVIDIUS'].mean()
@@ -83,14 +84,14 @@ mean_cpu = joules_dframe.loc[joules_dframe['hardware'] == 'CPU'].mean()
 mean_gpu = joules_dframe.loc[joules_dframe['hardware'] == 'GPU'].mean()
 
 # print out mean values for populating table in summary document
-prefixes = ['loihi', 'movidius', 'ncs2', 'jetson', 'cpu', 'gpu']
+prefixes = ['tpu', 'loihi', 'movidius', 'ncs2', 'jetson', 'cpu', 'gpu']
 
 print('Idle Power')
 for prefix in prefixes:
     print(prefix + ': %4f' % average_idle_power(idle_samples, prefix))
 
 print('')
-means = [mean_loihi, mean_movidius, mean_ncs2, mean_jetson, mean_cpu, mean_gpu]
+means = [mean_tpu, mean_loihi, mean_movidius, mean_ncs2, mean_jetson, mean_cpu, mean_gpu]
 for data, prefix in zip(means, prefixes):
     print(prefix + ':')
     print('Total Power: %4f' % data['total_power'])
@@ -100,6 +101,7 @@ for data, prefix in zip(means, prefixes):
     print('')
 
 # compute ratios for energy costs for plotting numbers alongside bars
+tpu_x = mean_tpu['dynamic_joules_per_inf'] / mean_loihi['dynamic_joules_per_inf']
 movidius_x = mean_movidius['dynamic_joules_per_inf'] / mean_loihi['dynamic_joules_per_inf']
 ncs_x = mean_ncs2['dynamic_joules_per_inf'] / mean_loihi['dynamic_joules_per_inf']
 jetson_x = mean_jetson['dynamic_joules_per_inf'] / mean_loihi['dynamic_joules_per_inf']
@@ -108,25 +110,27 @@ gpu_x = mean_gpu['dynamic_joules_per_inf'] / mean_loihi['dynamic_joules_per_inf'
 
 
 # PLOT 1. Dynamic joules per inference comparison
-plt.figure(figsize=(6, 6))
+plt.figure(figsize=(8, 8))
 plot = sns.barplot(
     'hardware', 'dynamic_joules_per_inf',
     data=joules_dframe,
-    order=['LOIHI', 'MOVIDIUS', 'NCS2', 'JETSON', 'CPU', 'GPU'])
+    order=['TPU', 'LOIHI', 'MOVIDIUS', 'NCS2', 'JETSON', 'CPU', 'GPU'])
 
 # add ratios of power consumption to plot
 plt.gcf().text(
-    0.18, 0.17, str(1) + 'x', fontsize=15, fontweight='bold')
+    0.15, 0.17, str(round(tpu_x, 1)) + 'x', fontsize=15, fontweight='bold')
 plt.gcf().text(
-    0.28, 0.17, str(round(movidius_x, 1)) + 'x', fontsize=15, fontweight='bold')
+    0.27, 0.17, str(1) + 'x', fontsize=15, fontweight='bold')
 plt.gcf().text(
-    0.41, 0.17, str(round(ncs_x, 1)) + 'x', fontsize=15, fontweight='bold')
+    0.37, 0.17, str(round(movidius_x, 1)) + 'x', fontsize=15, fontweight='bold')
 plt.gcf().text(
-    0.52, 0.17, str(round(jetson_x, 1)) + 'x', fontsize=15, fontweight='bold')
+    0.49, 0.17, str(round(ncs_x, 1)) + 'x', fontsize=15, fontweight='bold')
 plt.gcf().text(
-    0.65, 0.17, str(round(cpu_x, 1)) + 'x', fontsize=15, fontweight='bold')
+    0.58, 0.17, str(round(jetson_x, 1)) + 'x', fontsize=15, fontweight='bold')
 plt.gcf().text(
-    0.77, 0.17, str(round(gpu_x, 1)) + 'x', fontsize=15, fontweight='bold')
+    0.69, 0.17, str(round(cpu_x, 1)) + 'x', fontsize=15, fontweight='bold')
+plt.gcf().text(
+    0.8, 0.17, str(round(gpu_x, 1)) + 'x', fontsize=15, fontweight='bold')
 
 plot.set_title('Dynamic Energy Cost Per Inference (batchsize = 1)', fontsize=14)
 plot.set_xlabel('', labelpad=10)
@@ -134,6 +138,9 @@ plot.set_ylabel('Joules', fontsize=14)
 
 plot.figure.savefig("./paper/figures/per_inf_comparison.png")
 plt.show()
+
+import sys
+sys.exit()
 
 # PLOT 2. Batchsize comparison
 fig, ax = plt.subplots(1, 2, figsize=(12, 6))

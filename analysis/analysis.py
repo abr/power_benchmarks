@@ -35,6 +35,8 @@ def filestring_to_hardware(filestring):
         hardware = 'LOIHI'
     elif 'jetson' in filestring:
         hardware = 'JETSON'
+    elif 'tpu' in filestring:
+        hardware = 'TPU'
     else:
         raise Exception('Hardware unspecified in filestring!')
 
