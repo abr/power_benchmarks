@@ -2,7 +2,7 @@ import os
 import uuid
 import pickle
 import random
-# import librosa
+import librosa
 import numpy as np
 
 from collections import namedtuple
@@ -16,6 +16,77 @@ NengoSample = namedtuple(
 
 # permissible transcriptions for computing accuracy stats
 allowed_text = ['loha', 'alha', 'aloa', 'aloh', 'aoha', 'aloha']
+
+
+class SpeechCommandsHandler(object):
+    """Groups and preprocesses data from the Speech Commands dataset for
+    keyword spotting.
+
+    Parameters:
+    -----------
+    path: str
+        Path to a directory containing the Speech Commands dataset.
+    """
+    def __init__(self, path):
+        self.path = path
+
+        dev_path = os.path.join(self.path, 'validation_list.txt')
+        test_path = os.path.join(self.path, 'testing_list.txt')
+        
+        # store file paths for all dev items
+        with open(dev_path) as data:
+            dev_list = data.readlines()
+            self.dev_files = [f.rstrip() for f in dev_list]
+
+        # store file paths for all test items
+        with open(test_path) as data:
+            test_list = data.readlines()
+            self.test_files = [f.rstrip() for f in test_list]
+        
+        all_files = set()
+
+        for item in os.listdir(self.path):
+            if os.path.isdir(os.path.join(self.path, item)):
+                files = os.listdir(os.path.join(self.path, item))
+                files = {os.path.join(item, f) for f in files}
+
+                all_files.update(files)
+
+        train_files = all_files - set(self.test_files)
+
+        self.train_files = list(train_files - set(self.dev_files))
+
+    def load(self, file_list, keywords=None):
+        '''Load wav files corresponding to a list of filenames'''
+        data = []
+
+        for filename in file_list:
+            if not filename.endswith('.wav'):
+                continue
+
+
+            if keywords and not any([k for k in keywords if k in filename]):
+                continue
+
+            wav_path = os.path.join(self.path, filename)
+
+            text = filename.split('/')[0]
+            wav_name = filename.split('/')[1]
+
+            speaker_id = wav_name.split('_')[0]
+            sample_id = uuid.uuid4()
+            raw_audio, _ = librosa.load(wav_path, sr=16000)
+
+            sample = TFSample(raw_audio, text, speaker_id, sample_id, filename)
+            data.append(sample)
+
+        return data
+
+    def load_audio(self, keywords=None):
+
+        self.train_data = self.load(self.train_files, keywords) 
+        self.dev_data = self.load(self.dev_files, keywords)
+        self.test_data = self.load(self.test_files, keywords)
 
 
 class TurkHandler(object):
