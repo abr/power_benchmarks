@@ -402,3 +402,38 @@ class TPUModel(BaseModel):
         idx = np.argmax(res)
 
         return self.id_to_char[idx]
+
+
+class TFLiteModel(BaseModel):
+    """An inference-only version of speech model running in Tensorflow lite"""
+
+    def __init__(self, model_path):
+
+        super().__init__()
+
+        self.interpreter = tf.lite.Interpreter(model_path=model_path)
+        self.interpreter.allocate_tensors()
+
+        self.inp_details = {'name': 'inputs',
+                            'index': 10,
+                            'shape': np.array([1, 390]),
+                            'dtype': np.uint8,
+                            'quantization': (0.7632800340652466, 131)} 
+
+        self.out_details = {'name': 'copy_0/char_output/outputs',
+                            'index': 11,
+                            'shape': np.array([1, 29]),
+                            'dtype': np.uint8,
+                            'quantization': (4.331908226013184, 214)} 
+
+    def predict_text(self, features):
+        '''Predict a single character from a feature input window'''
+        features = quantize(self.inp_details, features)
+        self.interpreter.set_tensor(self.inp_details['index'], features)
+        self.interpreter.invoke()
+
+        output_data = self.interpreter.get_tensor(self.out_details['index'])
+        idx = np.argmax(output_data)
+        
+        return self.id_to_char[idx]
+
