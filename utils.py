@@ -14,6 +14,15 @@ allowed_text = ['loha', 'alha', 'aloa', 'aloh', 'aoha', 'aloha']
 id_to_char = np.array([x for x in string.ascii_lowercase + '\' -'])
 
 
+def create_stream(stream, dt=0.001): 
+
+    def play_stream(t, x):
+        ti = int(t / dt) - 1
+        return stream[ti, :]
+
+    return play_stream
+
+
 def merge(chars):
     '''Merge repeated characters and strip blank CTC symbol'''
     acc = ["-"]
