@@ -32,6 +32,7 @@ b_layer1 = weights['char_layer_1/biases']
 W_output = weights['char_output/weights']
 b_output = weights['char_output/biases']
 
+nengo.rc.set("precision", "bits", "32")
 
 with nengo.Network() as net:
     net.config[nengo.Connection].synapse = None
@@ -54,7 +55,6 @@ with nengo.Network() as net:
 
     out = nengo.Node(size_in=out_dim)
 
-    print(W_output.T.shape)
     nengo.Connection(inp, layer_0, transform=W_layer0.T)
     nengo.Connection(layer_0, layer_1, solver=NoSolver(np.eye(n_neurons)),
                      transform=W_layer1.T)
