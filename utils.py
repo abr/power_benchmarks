@@ -8,16 +8,16 @@ try:
     has_requests = True
 except ImportError:
     has_requests = False
-    
+
 # permissible transcriptions for computing accuracy stats
 allowed_text = ['loha', 'alha', 'aloa', 'aloh', 'aoha', 'aloha']
 id_to_char = np.array([x for x in string.ascii_lowercase + '\' -'])
 
 
-def create_stream(stream, dt=0.001): 
+def create_stream(stream, dt=0.001):
 
     def play_stream(t, x):
-        ti = int(t / dt) - 1
+        ti = int(round(t / dt)) - 1
         return stream[ti, :]
 
     return play_stream

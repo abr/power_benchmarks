@@ -41,7 +41,7 @@ fpga_1 = 'pynq'
 
 # Flag for easily switching between software and hardware implementations
 # 0 = layer_0 on fpga; 1 = layer_1 on fpga; 2 = both; else all software
-USE_FPGA = 1
+USE_FPGA = -1
 
 nengo.rc.set("precision", "bits", "32")
 
