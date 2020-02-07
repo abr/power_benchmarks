@@ -242,18 +242,16 @@ def with_graph(method):
     return add_to_graph
 
 
-def compute_stats(model, data):
+def compute_stats(model, data, id_to_char):
     """Compute True/False Pos/Neg stats for Tensorflow keyword model"""
     stats = {"fp": 0, "tp": 0, "fn": 0, "tn": 0, "aloha": 0, "not-aloha": 0}
 
     for features, text in data:
         inputs = np.squeeze(features)
+        outputs = model.predict(inputs)
 
-        chars = []
-        for window in inputs:
-            char = model.predict_text(np.expand_dims(window, axis=0))
-            chars.append(char)
-
+        ids = np.argmax(outputs, axis=1)
+        chars = [id_to_char[i] for i in ids]
         predicted_chars = merge(merge("".join(chars)))
 
         if text == "aloha":
