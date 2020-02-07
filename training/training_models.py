@@ -79,7 +79,7 @@ class CTCSpeechModel(object):
         self.n_frames = n_frames
 
         self.reset()
-        self.init = tf.contrib.layers.variance_scaling_initializer()
+        self.init = tf.compat.v1.variance_scaling_initializer()
 
         self._feat_f = None
         self._feat_args = None
@@ -145,15 +145,17 @@ class CTCSpeechModel(object):
 
     def ff_layer(self, inputs, size_in, size_out, scope, logits=False):
         """Build a feedforward layer that computes activations from inputs"""
-        with tf.variable_scope(scope):
-            w = tf.get_variable(
+        with tf.compat.v1.variable_scope(scope):
+            w = tf.compat.v1.get_variable(
                 "weights", shape=[size_in, size_out], initializer=self.init
             )
-            b = tf.get_variable("biases", shape=[size_out], initializer=self.init)
+            b = tf.compat.v1.get_variable(
+                "biases", shape=[size_out], initializer=self.init
+            )
         if logits:
-            activations = tf.nn.xw_plus_b(inputs, w, b)
+            activations = tf.compat.v1.nn.xw_plus_b(inputs, w, b)
         else:
-            activations = tf.nn.relu(tf.nn.xw_plus_b(inputs, w, b))
+            activations = tf.nn.relu(tf.compat.v1.nn.xw_plus_b(inputs, w, b))
 
         return activations
 
@@ -181,14 +183,14 @@ class CTCSpeechModel(object):
         """Start a session instance for doing training or prediction"""
         if self.built:
             # add this to disable GPU
-            config = tf.ConfigProto(device_count={"GPU": 0})
-            self.sess = tf.Session(config=config)
+            config = tf.compat.v1.ConfigProto(device_count={"GPU": 0})
+            self.sess = tf.compat.v1.Session(config=config)
 
-            self.sess.run(tf.global_variables_initializer())
-            self.saver = tf.train.Saver()
+            self.sess.run(tf.compat.v1.global_variables_initializer())
+            self.saver = tf.compat.v1.train.Saver()
 
-            self.sess = tf.Session(config=config)
-            self.sess.run(tf.global_variables_initializer())
+            self.sess = tf.compat.v1.Session(config=config)
+            self.sess.run(tf.compat.v1.global_variables_initializer())
 
         else:
             raise RuntimeError("No graph exists to start a session with!")
@@ -199,16 +201,16 @@ class CTCSpeechModel(object):
         if self.built:
             raise RuntimeError("Graph has already been built! Please reset.")
 
-        self.rate = tf.placeholder(tf.float32, shape=[])
+        self.rate = tf.compat.v1.placeholder(tf.float32, shape=[])
 
         global_step = tf.Variable(0, trainable=False)
-        learning_rate = tf.train.exponential_decay(
+        learning_rate = tf.compat.v1.train.exponential_decay(
             self.rate, global_step, decay_steps, decay_rate, staircase=False
         )
 
-        self.features = tf.placeholder(tf.float32, [None, None])
-        self.speaker = tf.placeholder(tf.int32, [None])
-        self.targets = tf.sparse_placeholder(tf.int32)
+        self.features = tf.compat.v1.placeholder(tf.float32, [None, None])
+        self.speaker = tf.compat.v1.placeholder(tf.int32, [None])
+        self.targets = tf.compat.v1.sparse_placeholder(tf.int32)
 
         n_windows = tf.shape(self.features)[0] - self.n_frames
 
@@ -290,7 +292,7 @@ class CTCSpeechModel(object):
 
         n_windows = tf.expand_dims(n_windows, 0)
 
-        char_loss = tf.nn.ctc_loss(
+        char_loss = tf.compat.v1.nn.ctc_loss(
             self.targets,
             self.c_logits,
             n_windows,
@@ -308,11 +310,11 @@ class CTCSpeechModel(object):
         self.cost = tf.reduce_sum(id_loss) + tf.reduce_sum(char_loss)
 
         # build the loss and an op for doing parameter updates
-        tvars = tf.trainable_variables()
+        tvars = tf.compat.v1.trainable_variables()
         grads = tf.gradients(self.cost, tvars)
         grads, _ = tf.clip_by_global_norm(grads, 5.0)  # avoid explosions
 
-        optimizer = tf.train.RMSPropOptimizer(learning_rate)
+        optimizer = tf.compat.v1.train.RMSPropOptimizer(learning_rate)
 
         self.train_step = optimizer.apply_gradients(
             zip(grads, tvars), global_step=global_step

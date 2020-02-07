@@ -8,7 +8,6 @@ The code is MIT licensed, so we can include it here
 import math
 
 import numpy as np
-from nengo.utils.compat import range
 from scipy.fftpack import dct
 
 
