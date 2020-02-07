@@ -5,17 +5,18 @@ import numpy as np
 
 try:
     import requests
+
     has_requests = True
 except ImportError:
     has_requests = False
-    
+
 # permissible transcriptions for computing accuracy stats
-allowed_text = ['loha', 'alha', 'aloa', 'aloh', 'aoha', 'aloha']
-id_to_char = np.array([x for x in string.ascii_lowercase + '\' -'])
+allowed_text = ["loha", "alha", "aloa", "aloh", "aoha", "aloha"]
+id_to_char = np.array([x for x in string.ascii_lowercase + "' -"])
 
 
 def merge(chars):
-    '''Merge repeated characters and strip blank CTC symbol'''
+    """Merge repeated characters and strip blank CTC symbol"""
     acc = ["-"]
     for c in chars:
         if c != acc[-1]:
@@ -26,13 +27,13 @@ def merge(chars):
 
 
 def weight_init(shape):
-    '''Convenience function for randomly initializing weights'''
+    """Convenience function for randomly initializing weights"""
     weights = np.random.uniform(-0.05, 0.05, size=shape)
     return weights
 
 
 def predict_text(sim, char_probe, n_steps, p_time):
-    '''Predict a text transcription from the current simulation state'''
+    """Predict a text transcription from the current simulation state"""
     n_frames = int(n_steps / p_time)
     char_data = sim.data[char_probe]
     n_chars = char_data.shape[1]
@@ -44,20 +45,21 @@ def predict_text(sim, char_probe, n_steps, p_time):
     char_ids = np.argmax(char_out, axis=2)
     char_ids = [np.argmax(np.bincount(i)) for i in char_ids]
 
-    text = merge(''.join([id_to_char[i] for i in char_ids]))
+    text = merge("".join([id_to_char[i] for i in char_ids]))
     text = merge(text)  # merge repeats to help autocorrect
 
     return text
 
 
 def download(fname, drive_id):
-    '''Download a file from Google Drive.
+    """Download a file from Google Drive.
 
     Adapted from https://stackoverflow.com/a/39225039/1306923
-    '''
+    """
+
     def get_confirm_token(response):
         for key, value in response.cookies.items():
-            if key.startswith('download_warning'):
+            if key.startswith("download_warning"):
                 return value
         return None
 
@@ -71,16 +73,16 @@ def download(fname, drive_id):
 
     url = "https://docs.google.com/uc?export=download"
     session = requests.Session()
-    response = session.get(url, params={'id': drive_id}, stream=True)
+    response = session.get(url, params={"id": drive_id}, stream=True)
     token = get_confirm_token(response)
     if token is not None:
-        params = {'id': drive_id, 'confirm': token}
+        params = {"id": drive_id, "confirm": token}
         response = session.get(url, params=params, stream=True)
     save_response_content(response, fname)
 
 
 def load(fname, drive_id):
-    '''Load file either by downloading or using already downloaded version'''
+    """Load file either by downloading or using already downloaded version"""
     if not os.path.exists(fname):
         if has_requests:
             print("Downloading %s..." % fname)
@@ -90,7 +92,8 @@ def load(fname, drive_id):
             link = "https://drive.google.com/open?id=%s" % drive_id
             raise RuntimeError(
                 "Cannot find '%s'. Download the file from\n  %s\n"
-                "and place it in %s." % (fname, link, os.getcwd()))
+                "and place it in %s." % (fname, link, os.getcwd())
+            )
     print("Loading %s" % fname)
     with open(fname, "rb") as fp:
         ret = pickle.load(fp)
@@ -98,15 +101,8 @@ def load(fname, drive_id):
 
 
 def compute_tf_stats(model, data):
-    '''Compute True/False Pos/Neg stats for Tensorflow keyword model'''
-    stats = {
-        "fp":0,
-        "tp":0,
-        "fn":0,
-        "tn":0,
-        "aloha": 0,
-        "not-aloha": 0
-    }
+    """Compute True/False Pos/Neg stats for Tensorflow keyword model"""
+    stats = {"fp": 0, "tp": 0, "fn": 0, "tn": 0, "aloha": 0, "not-aloha": 0}
 
     for features, text in data:
         inputs = np.squeeze(features)
@@ -116,9 +112,9 @@ def compute_tf_stats(model, data):
             char = model.predict_text(np.expand_dims(window, axis=0))
             chars.append(char)
 
-        predicted_chars = model.merge(model.merge(''.join(chars)))
+        predicted_chars = model.merge(model.merge("".join(chars)))
 
-        if text == 'aloha':
+        if text == "aloha":
             stats["aloha"] += 1
             if predicted_chars in allowed_text:
                 stats["tp"] += 1
@@ -138,4 +134,3 @@ def compute_tf_stats(model, data):
     print()
     print("True negative rate:\t%.3f" % (stats["tn"] / stats["not-aloha"]))
     print("False positive rate:\t%.3f" % (stats["fp"] / stats["not-aloha"]))
-

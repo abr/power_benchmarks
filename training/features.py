@@ -12,9 +12,22 @@ from nengo.utils.compat import range
 from scipy.fftpack import dct
 
 
-def mfcc(audio, fs=16000, window_dt=0.025, dt=0.01, n_cepstra=13,
-         n_filters=26, n_fft=512, minfreq=0, maxfreq=None, preemph=0.97,
-         lift=22, energy=True, n_derivatives=0, deriv_spread=2):
+def mfcc(
+    audio,
+    fs=16000,
+    window_dt=0.025,
+    dt=0.01,
+    n_cepstra=13,
+    n_filters=26,
+    n_fft=512,
+    minfreq=0,
+    maxfreq=None,
+    preemph=0.97,
+    lift=22,
+    energy=True,
+    n_derivatives=0,
+    deriv_spread=2,
+):
     """Compute MFCC features from an audio signal.
 
     Parameters
@@ -62,9 +75,10 @@ def mfcc(audio, fs=16000, window_dt=0.025, dt=0.01, n_cepstra=13,
     containing features. Each row holds 1 feature vector.
     """
     feat, energy_ = fbank(
-        audio, fs, window_dt, dt, n_filters, n_fft, minfreq, maxfreq, preemph)
+        audio, fs, window_dt, dt, n_filters, n_fft, minfreq, maxfreq, preemph
+    )
     feat = np.log(feat)
-    feat = dct(feat, type=2, axis=1, norm='ortho')[:, :n_cepstra]
+    feat = dct(feat, type=2, axis=1, norm="ortho")[:, :n_cepstra]
     feat = lifter(feat, lift)
     if energy:
         # replace first cepstral coefficient with log of frame energy
@@ -78,8 +92,17 @@ def mfcc(audio, fs=16000, window_dt=0.025, dt=0.01, n_cepstra=13,
     return np.hstack([feat] + derivs)
 
 
-def fbank(audio, fs=16000, window_dt=0.025, dt=0.01,
-          n_filters=26, n_fft=512, minfreq=0, maxfreq=None, preemph=0.97):
+def fbank(
+    audio,
+    fs=16000,
+    window_dt=0.025,
+    dt=0.01,
+    n_filters=26,
+    n_fft=512,
+    minfreq=0,
+    maxfreq=None,
+    preemph=0.97,
+):
     """Compute Mel-filterbank energy features from an audio signal.
 
     Returns
@@ -91,7 +114,7 @@ def fbank(audio, fs=16000, window_dt=0.025, dt=0.01,
     """
     maxfreq = fs // 2 if maxfreq is None else maxfreq
     audio = preemphasis(audio, preemph)
-    frames = framesig(audio, window_dt*fs, dt*fs)
+    frames = framesig(audio, window_dt * fs, dt * fs)
     pspec = powspec(frames, n_fft)
     energy = np.sum(pspec, axis=1)  # stores the total energy in each frame
     # if energy is zero, we get problems with log
@@ -105,33 +128,50 @@ def fbank(audio, fs=16000, window_dt=0.025, dt=0.01,
     return feat, energy
 
 
-def logfbank(audio, fs=16000, window_dt=0.025, dt=0.01,
-             n_filters=26, n_fft=512, minfreq=0, maxfreq=None, preemph=0.97):
+def logfbank(
+    audio,
+    fs=16000,
+    window_dt=0.025,
+    dt=0.01,
+    n_filters=26,
+    n_fft=512,
+    minfreq=0,
+    maxfreq=None,
+    preemph=0.97,
+):
     """Compute log Mel-filterbank energy features from an audio signal."""
     feat, energy = fbank(
-        audio, fs, window_dt, dt, n_filters, n_fft, minfreq, maxfreq, preemph)
+        audio, fs, window_dt, dt, n_filters, n_fft, minfreq, maxfreq, preemph
+    )
     return np.log(feat)
 
 
-def ssc(audio, fs=16000, window_dt=0.025, dt=0.01,
-        n_filters=26, n_fft=512, minfreq=0, maxfreq=None, preemph=0.97):
+def ssc(
+    audio,
+    fs=16000,
+    window_dt=0.025,
+    dt=0.01,
+    n_filters=26,
+    n_fft=512,
+    minfreq=0,
+    maxfreq=None,
+    preemph=0.97,
+):
     """Compute Spectral Subband Centroid features from an audio signal."""
     maxfreq = fs // 2 if maxfreq is None else maxfreq
     audio = preemphasis(audio, preemph)
-    frames = framesig(audio, window_dt*fs, dt*fs)
+    frames = framesig(audio, window_dt * fs, dt * fs)
     pspec = powspec(frames, n_fft)
     # if things are all zeros we get problems
     pspec[pspec == 0] = np.finfo(float).eps
 
     fb = get_filterbanks(n_filters, n_fft, fs, minfreq, maxfreq)
     feat = np.dot(pspec, fb.T)  # compute the filterbank energies
-    R = np.tile(np.linspace(1, fs // 2, pspec.shape[1]),
-                (pspec.shape[0], 1))
+    R = np.tile(np.linspace(1, fs // 2, pspec.shape[1]), (pspec.shape[0], 1))
     return np.dot(pspec * R, fb.T) / feat
 
 
-def get_filterbanks(n_filters=20, n_fft=512, fs=16000,
-                    minfreq=0, maxfreq=None):
+def get_filterbanks(n_filters=20, n_fft=512, fs=16000, minfreq=0, maxfreq=None):
     """Compute a Mel-filterbank.
 
     The filters are stored in the rows, the columns correspond to fft bins.
@@ -167,7 +207,7 @@ def get_filterbanks(n_filters=20, n_fft=512, fs=16000,
     # from Hz to fft bin number
     fbin = np.floor((n_fft + 1) * mel2hz(melpoints) / fs)
 
-    fbank = np.zeros([n_filters, int(n_fft/2+1)])
+    fbank = np.zeros([n_filters, int(n_fft / 2 + 1)])
     for j in range(n_filters):
         for i in range(int(fbin[j]), int(fbin[j + 1])):
             fbank[j, i] = (i - fbin[j]) / (fbin[j + 1] - fbin[j])
@@ -227,18 +267,19 @@ def framesig(sig, frame_len, frame_step, winfunc=lambda x: np.ones(x)):
         numframes = 1 + int(math.ceil((1.0 * slen - frame_len) / frame_step))
 
     padlen = int((numframes - 1) * frame_step + frame_len)
-    padsignal = np.concatenate((sig,  np.zeros(padlen - slen)))
+    padsignal = np.concatenate((sig, np.zeros(padlen - slen)))
 
-    indices = (np.tile(np.arange(frame_len), (numframes, 1))
-               + np.tile(np.arange(0, numframes * frame_step, frame_step),
-                         (frame_len, 1)).T.astype(dtype=np.int32))
+    indices = np.tile(np.arange(frame_len), (numframes, 1)) + np.tile(
+        np.arange(0, numframes * frame_step, frame_step), (frame_len, 1)
+    ).T.astype(dtype=np.int32)
     frames = padsignal[indices]
     win = np.tile(winfunc(frame_len), (numframes, 1))
     return frames * win
 
 
-def deframesig(frames, frame_len, frame_step, siglen=None,
-               winfunc=lambda x: np.ones(x)):
+def deframesig(
+    frames, frame_len, frame_step, siglen=None, winfunc=lambda x: np.ones(x)
+):
     """Does overlap-add procedure to undo the action of framesig.
 
     Parameters
@@ -262,13 +303,13 @@ def deframesig(frames, frame_len, frame_step, siglen=None,
     frame_len = round(frame_len)
     frame_step = round(frame_step)
     numframes = frames.shape[0]
-    assert frames.shape[1] == frame_len, (
-        "'frames' shape incorrect. Expected %d; got %d."
-        % (frame_len, frames.shape[1]))
+    assert (
+        frames.shape[1] == frame_len
+    ), "'frames' shape incorrect. Expected %d; got %d." % (frame_len, frames.shape[1])
 
-    indices = (np.tile(np.arange(frame_len), (numframes, 1))
-               + np.tile(np.arange(0, numframes*frame_step, frame_step),
-                         (frame_len, 1)).T.astype(dtype=np.int32))
+    indices = np.tile(np.arange(frame_len), (numframes, 1)) + np.tile(
+        np.arange(0, numframes * frame_step, frame_step), (frame_len, 1)
+    ).T.astype(dtype=np.int32)
     padlen = (numframes - 1) * frame_step + frame_len
     siglen = padlen if siglen is None else siglen
     rec_signal = np.zeros(padlen)
@@ -364,12 +405,12 @@ def preemphasis(signal, coeff=0.95):
 
 def hz2mel(hz):
     """Convert a value in Hertz to Mels."""
-    return 2595. * np.log10(1 + hz / 700.0)
+    return 2595.0 * np.log10(1 + hz / 700.0)
 
 
 def mel2hz(mel):
     """Convert a value in Mels to Hertz."""
-    return 700. * (10. ** (mel / 2595.0) - 1)
+    return 700.0 * (10.0 ** (mel / 2595.0) - 1)
 
 
 def hz2st(hz, reference=16.35159783):
@@ -381,7 +422,7 @@ def hz2st(hz, reference=16.35159783):
 
 def st2hz(st, reference=16.35159783):
     """Convert semi-tones to hertz, relative to musical note C0."""
-    return reference * np.power(2, st / 12.)
+    return reference * np.power(2, st / 12.0)
 
 
 def ensuretuple(val):
@@ -401,9 +442,9 @@ def derivative(feat, spread):
     out = np.zeros_like(feat)
     for i in range(1, spread + 1):
         plus = np.roll(feat, -i, axis=0)
-        plus[-i:] = plus[-i-1]
+        plus[-i:] = plus[-i - 1]
         minus = np.roll(feat, i, axis=0)
-        minus[:i] = 0.
+        minus[:i] = 0.0
         out += plus - minus
     return out / (2 * np.sum(np.arange(1, spread + 1)))
 

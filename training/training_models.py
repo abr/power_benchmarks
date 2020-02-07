@@ -52,16 +52,19 @@ class CTCSpeechModel(object):
     checkpoints : str
         The path to where checkpoint files will be saved.
     """
-    def __init__(self,
-                 n_speakers,
-                 feature="mfcc",
-                 n_per_layer=256,
-                 n_layers=4,
-                 n_shared=0,
-                 n_features=26,
-                 n_frames=15,
-                 char_list=None,
-                 checkpoints=None):
+
+    def __init__(
+        self,
+        n_speakers,
+        feature="mfcc",
+        n_per_layer=256,
+        n_layers=4,
+        n_shared=0,
+        n_features=26,
+        n_frames=15,
+        char_list=None,
+        checkpoints=None,
+    ):
 
         if not hasattr(features, feature):
             raise ValueError("Feature %r not found" % feature)
@@ -83,7 +86,7 @@ class CTCSpeechModel(object):
 
         # build a lookup tables for mapping between characters and indices
         if not char_list:
-            char_list = string.ascii_lowercase + '\' -'
+            char_list = string.ascii_lowercase + "' -"
 
         self.char_to_id = {c: i for i, c in enumerate(char_list)}
         self.id_to_char = {i: c for i, c in enumerate(char_list)}
@@ -94,15 +97,15 @@ class CTCSpeechModel(object):
         return self.n_features * self.n_frames
 
     def save(self, filename):
-        '''Save the model to a checkpoint file'''
+        """Save the model to a checkpoint file"""
         if self.sess is None:
-            raise RuntimeError('No session object exists to save!')
+            raise RuntimeError("No session object exists to save!")
         else:
             with self.graph.as_default():
                 self.saver.save(self.sess, filename)
 
     def load(self, filename):
-        '''Load an existing model from a checkpoint file'''
+        """Load an existing model from a checkpoint file"""
         self.reset()
         self.build()
         self.start_session()
@@ -110,14 +113,14 @@ class CTCSpeechModel(object):
             self.saver.restore(self.sess, filename)
 
     def reset(self):
-        '''Reset the comp graph, remove session and saver'''
+        """Reset the comp graph, remove session and saver"""
         self.graph = tf.Graph()
         self.built = False
         self.sess = None
         self.saver = None
 
     def check_build_status(self):
-        '''Ensures built graph and running session are available'''
+        """Ensures built graph and running session are available"""
         if not self.built:
             self.build()
             self.start_session()
@@ -126,12 +129,14 @@ class CTCSpeechModel(object):
         if self._feat_f is None:
             self._feat_f = getattr(features, self.feature)
             self._feat_args = (
-                {"n_cepstra": self.n_features} if self.feature == "mfcc" else
-                {"n_filters": self.n_features})
+                {"n_cepstra": self.n_features}
+                if self.feature == "mfcc"
+                else {"n_filters": self.n_features}
+            )
         return self._feat_f(audio, **self._feat_args)
 
     def get_sparse_ctc_targets(self, text):
-        '''Convert text to tuple for sparse_tensor_array in CTC loss comp'''
+        """Convert text to tuple for sparse_tensor_array in CTC loss comp"""
         targets = np.asarray([self.char_to_id[c] for c in text])
         indices = list(zip([0] * len(targets), range(len(targets))))
         targets = (indices, targets, [1, len(targets)])
@@ -139,12 +144,12 @@ class CTCSpeechModel(object):
         return targets
 
     def ff_layer(self, inputs, size_in, size_out, scope, logits=False):
-        '''Build a feedforward layer that computes activations from inputs'''
+        """Build a feedforward layer that computes activations from inputs"""
         with tf.variable_scope(scope):
-            w = tf.get_variable('weights', shape=[size_in, size_out],
-                                initializer=self.init)
-            b = tf.get_variable('biases', shape=[size_out],
-                                initializer=self.init)
+            w = tf.get_variable(
+                "weights", shape=[size_in, size_out], initializer=self.init
+            )
+            b = tf.get_variable("biases", shape=[size_out], initializer=self.init)
         if logits:
             activations = tf.nn.xw_plus_b(inputs, w, b)
         else:
@@ -153,7 +158,7 @@ class CTCSpeechModel(object):
         return activations
 
     def build_ff_branch(self, x, scopes):
-        '''Build branch of layers specific to either id or character output'''
+        """Build branch of layers specific to either id or character output"""
         for i, scope in enumerate(scopes):
             if i < 1 and self.n_shared < 1:
                 size_in = self.size_in  # handles case w/ no shared layers
@@ -165,7 +170,7 @@ class CTCSpeechModel(object):
         return x
 
     def build_feed(self, audio):
-        '''Make feed_dict for passing audio features to model for inference'''
+        """Make feed_dict for passing audio features to model for inference"""
         features = self.get_features(audio)
         feed_dict = {self.features: features}
 
@@ -173,10 +178,10 @@ class CTCSpeechModel(object):
 
     @with_graph
     def start_session(self):
-        '''Start a session instance for doing training or prediction'''
+        """Start a session instance for doing training or prediction"""
         if self.built:
             # add this to disable GPU
-            config = tf.ConfigProto(device_count={'GPU': 0})
+            config = tf.ConfigProto(device_count={"GPU": 0})
             self.sess = tf.Session(config=config)
 
             self.sess.run(tf.global_variables_initializer())
@@ -190,7 +195,7 @@ class CTCSpeechModel(object):
 
     @with_graph
     def build(self, ctc_beam_search=False, decay_steps=8000, decay_rate=0.7):
-        '''Build all necessary ops into the object's tensorflow graph'''
+        """Build all necessary ops into the object's tensorflow graph"""
         if self.built:
             raise RuntimeError("Graph has already been built! Please reset.")
 
@@ -198,7 +203,8 @@ class CTCSpeechModel(object):
 
         global_step = tf.Variable(0, trainable=False)
         learning_rate = tf.train.exponential_decay(
-            self.rate, global_step, decay_steps, decay_rate, staircase=False)
+            self.rate, global_step, decay_steps, decay_rate, staircase=False
+        )
 
         self.features = tf.placeholder(tf.float32, [None, None])
         self.speaker = tf.placeholder(tf.int32, [None])
@@ -211,8 +217,15 @@ class CTCSpeechModel(object):
         d_vec_array = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
         window_array = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
 
-        loop_vars = [0, n_windows, self.features, c_logit_array, i_logit_array,
-                     window_array, d_vec_array]
+        loop_vars = [
+            0,
+            n_windows,
+            self.features,
+            c_logit_array,
+            i_logit_array,
+            window_array,
+            d_vec_array,
+        ]
 
         # define loop that applies the feedforward model over a frame sequence
         def cond(t, t_stop, *args):
@@ -223,15 +236,15 @@ class CTCSpeechModel(object):
 
             n_per_branch = self.n_layers - self.n_shared
 
-            shared = ['shared_layer_' + str(n) for n in range(self.n_shared)]
-            char_scopes = ['char_layer_' + str(n) for n in range(n_per_branch)]
-            id_scopes = ['id_layer_' + str(n) for n in range(n_per_branch)]
+            shared = ["shared_layer_" + str(n) for n in range(self.n_shared)]
+            char_scopes = ["char_layer_" + str(n) for n in range(n_per_branch)]
+            id_scopes = ["id_layer_" + str(n) for n in range(n_per_branch)]
 
-            char_out_scope = 'char_output'
-            id_out_scope = 'id_output'
+            char_out_scope = "char_output"
+            id_out_scope = "id_output"
 
             # slice window out of feature array and flatten it
-            inp = self.features[t:t+self.n_frames, :]
+            inp = self.features[t : t + self.n_frames, :]
             windows = windows.write(t, tf.reshape(inp, [1, self.size_in]))
 
             x = tf.reshape(inp, [1, self.size_in])
@@ -249,10 +262,12 @@ class CTCSpeechModel(object):
                 x_id = x
 
             # build output layers for each task
-            char_out = self.ff_layer(x_char, self.n_per_layer, self.n_chars,
-                                     char_out_scope, logits=True)
-            id_out = self.ff_layer(x_id, self.n_per_layer, self.n_speakers,
-                                   id_out_scope, logits=True)
+            char_out = self.ff_layer(
+                x_char, self.n_per_layer, self.n_chars, char_out_scope, logits=True
+            )
+            id_out = self.ff_layer(
+                x_id, self.n_per_layer, self.n_speakers, id_out_scope, logits=True
+            )
 
             # accumulate logit values for each window
             char_logits = char_logits.write(t, char_out)
@@ -261,13 +276,11 @@ class CTCSpeechModel(object):
             # accumulate ID d-vectors
             d_vecs = d_vecs.write(t, x_id)
 
-            return [t+1, t_stop, features, char_logits, id_logits, windows,
-                    d_vecs]
+            return [t + 1, t_stop, features, char_logits, id_logits, windows, d_vecs]
 
         # note that because there are no dependencies between time steps, we
         # can run the loop iterations in parallel (doesn't make much of a diff)
-        loop_output = tf.while_loop(cond, body, loop_vars,
-                                    parallel_iterations=20)
+        loop_output = tf.while_loop(cond, body, loop_vars, parallel_iterations=20)
 
         # use squeeze to create 2D instead of 3D arrays
         self.c_logits = loop_output[3].stack()  # can't squeeze b/c ctc loss
@@ -277,14 +290,19 @@ class CTCSpeechModel(object):
 
         n_windows = tf.expand_dims(n_windows, 0)
 
-        char_loss = tf.nn.ctc_loss(self.targets, self.c_logits, n_windows,
-                                   preprocess_collapse_repeated=False,
-                                   ctc_merge_repeated=True,
-                                   ignore_longer_outputs_than_inputs=True,
-                                   time_major=True)
+        char_loss = tf.nn.ctc_loss(
+            self.targets,
+            self.c_logits,
+            n_windows,
+            preprocess_collapse_repeated=False,
+            ctc_merge_repeated=True,
+            ignore_longer_outputs_than_inputs=True,
+            time_major=True,
+        )
 
         id_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            logits=self.i_logits, labels=self.speaker)
+            logits=self.i_logits, labels=self.speaker
+        )
 
         # TODO: figure out a good weighting scheme for combining losses
         self.cost = tf.reduce_sum(id_loss) + tf.reduce_sum(char_loss)
@@ -296,25 +314,26 @@ class CTCSpeechModel(object):
 
         optimizer = tf.train.RMSPropOptimizer(learning_rate)
 
-        self.train_step = optimizer.apply_gradients(zip(grads, tvars),
-                                                    global_step=global_step)
+        self.train_step = optimizer.apply_gradients(
+            zip(grads, tvars), global_step=global_step
+        )
 
-        self.speaker_decode = tf.argmax(self.i_logits, axis=-1,
-                                        output_type=tf.int32)
+        self.speaker_decode = tf.argmax(self.i_logits, axis=-1, output_type=tf.int32)
         if ctc_beam_search:
             self.char_decode, _ = tf.nn.ctc_beam_search_decoder(
-                self.c_logits, n_windows)
+                self.c_logits, n_windows
+            )
         else:
-            self.char_decode, _ = tf.nn.ctc_greedy_decoder(
-                self.c_logits, n_windows)
+            self.char_decode, _ = tf.nn.ctc_greedy_decoder(self.c_logits, n_windows)
 
-        self.ler = tf.reduce_mean(tf.edit_distance(
-            tf.cast(self.char_decode[0], tf.int32), self.targets))
+        self.ler = tf.reduce_mean(
+            tf.edit_distance(tf.cast(self.char_decode[0], tf.int32), self.targets)
+        )
 
         self.built = True
 
     def train(self, dataset, rate, n_epochs=10, display=True, resume=False):
-        '''Train the model on a dataset of unbatched audio/text pairs'''
+        """Train the model on a dataset of unbatched audio/text pairs"""
         if resume:
             self.load(self.checkpoints)
         else:
@@ -332,16 +351,19 @@ class CTCSpeechModel(object):
                 features = self.get_features(item.audio)
                 targets = self.get_sparse_ctc_targets(item.text)
 
-                n_input_frames = features.shape[0]-self.n_frames
+                n_input_frames = features.shape[0] - self.n_frames
                 speaker = item.speaker_id * np.ones(n_input_frames)
 
-                feed_dict = {self.rate: rate,
-                             self.features: features,
-                             self.targets: targets,
-                             self.speaker: speaker}
+                feed_dict = {
+                    self.rate: rate,
+                    self.features: features,
+                    self.targets: targets,
+                    self.speaker: speaker,
+                }
 
-                cost, _ = self.sess.run([self.cost, self.train_step],
-                                        feed_dict=feed_dict)
+                cost, _ = self.sess.run(
+                    [self.cost, self.train_step], feed_dict=feed_dict
+                )
 
                 # TF warnings are sufficient, don't want inf cost for epoch
                 if not np.isinf(cost):
@@ -357,18 +379,18 @@ class CTCSpeechModel(object):
 
     @with_graph
     def predict_chars(self, audio):
-        '''Predict a character transcription from an audio sample'''
+        """Predict a character transcription from an audio sample"""
         self.check_build_status()
         feed_dict = self.build_feed(audio)
 
         decodings = self.sess.run(self.char_decode, feed_dict=feed_dict)
-        prediction = ''.join([self.id_to_char[i] for i in decodings[0][1]])
+        prediction = "".join([self.id_to_char[i] for i in decodings[0][1]])
 
         return prediction
 
     @with_graph
     def predict_speaker(self, audio):
-        '''Predict the speaker id from an audio sample'''
+        """Predict the speaker id from an audio sample"""
         self.check_build_status()
         feed_dict = self.build_feed(audio)
 
@@ -379,7 +401,7 @@ class CTCSpeechModel(object):
 
     @with_graph
     def predict_speaker_from_d_vector(self, audio):
-        '''Predict the speaker id from an audio sample'''
+        """Predict the speaker id from an audio sample"""
         self.check_build_status()
         feed_dict = self.build_feed(audio)
 
@@ -393,7 +415,7 @@ class CTCSpeechModel(object):
 
     @with_graph
     def compute_logits(self, audio):
-        '''Pairs feature windows with logits for character prediction'''
+        """Pairs feature windows with logits for character prediction"""
         self.check_build_status()
         feed_dict = self.build_feed(audio)
 
@@ -404,7 +426,7 @@ class CTCSpeechModel(object):
 
     @with_graph
     def compute_speaker_vectors(self, dataset):
-        '''Compute and store average d-vector for each speaker in dataset'''
+        """Compute and store average d-vector for each speaker in dataset"""
         self.check_build_status()
         self.speaker_averages = []
         self.speaker_mapping = []
@@ -431,7 +453,7 @@ class CTCSpeechModel(object):
 
     @with_graph
     def compute_ler(self, audio, text):
-        '''Compute the label error rate from an audio/text pair'''
+        """Compute the label error rate from an audio/text pair"""
         self.check_build_status()
 
         features = self.get_features(audio)
@@ -444,22 +466,22 @@ class CTCSpeechModel(object):
 
     @with_graph
     def save_inference_params(self, filename):
-        '''Save dict mapping vars to vals for creating inference-only model'''
-        variables = [v for v in tf.trainable_variables() if 'char' in v.name]
+        """Save dict mapping vars to vals for creating inference-only model"""
+        variables = [v for v in tf.trainable_variables() if "char" in v.name]
         params = {v.op.name: self.sess.run(v) for v in variables}
 
-        with open(filename, 'wb') as pfile:
+        with open(filename, "wb") as pfile:
             pickle.dump(params, pfile, protocol=2)
 
     def save_quantized_model(self, filename):
-        '''Save protobuff file for model with quantization aware training'''
+        """Save protobuff file for model with quantization aware training"""
         tf.contrib.quantize.create_eval_graph(input_graph=self.graph)
         # Save the checkpoint and eval graph proto to disk for freezing
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             f.write(str(self.graph.as_graph_def()))
 
     def id_error_rate(self, dataset, use_d_vectors=False):
-        '''Compute ID prediction error rate using supplied dataset'''
+        """Compute ID prediction error rate using supplied dataset"""
         count = 0
         for item in dataset:
             if use_d_vectors:
@@ -472,7 +494,7 @@ class CTCSpeechModel(object):
         return 100 - 100 * (count / len(dataset))
 
     def label_error_rate(self, dataset):
-        '''Compute average label error rate using supplied dataset'''
+        """Compute average label error rate using supplied dataset"""
         acc = []
         for item in dataset:
             ler = self.compute_ler(item.audio, item.text)
@@ -481,7 +503,7 @@ class CTCSpeechModel(object):
         return 100 * (sum(acc) / len(acc))
 
     def collect_ce_data(self, dataset):
-        '''Group features, char onehots, id onehots as predicted by model'''
+        """Group features, char onehots, id onehots as predicted by model"""
         acc = []
         for sample in dataset:
             features, logits = self.compute_logits(sample.audio)
@@ -494,7 +516,7 @@ class CTCSpeechModel(object):
         return acc
 
     def create_nengo_data(self, dataset, n_steps, itemize=False, stream=False):
-        '''Make Nengo DL formatted data with model predictions as CE targets'''
+        """Make Nengo DL formatted data with model predictions as CE targets"""
         if itemize:
             # create seperate items for each audio sample
             nengo_data = []
@@ -502,7 +524,8 @@ class CTCSpeechModel(object):
                 ce_data = self.collect_ce_data([sample])
                 arrays = build_arrays(ce_data, n_steps, stream=stream)
                 data_item = NengoSample(
-                    arrays, sample.text, sample.speaker_id, sample.sample_id)
+                    arrays, sample.text, sample.speaker_id, sample.sample_id
+                )
 
                 nengo_data.append(data_item)
         else:
@@ -531,6 +554,7 @@ class FFSpeechModel(CTCSpeechModel):
     checkpoints: filepath (optional)
         Name of the checkpoint file to save/load with.
     """
+
     def __init__(self, n_per_layer=256, n_layers=2, checkpoints=None):
 
         self.checkpoints = checkpoints
@@ -543,7 +567,7 @@ class FFSpeechModel(CTCSpeechModel):
         self.reset()
         self.init = tf.contrib.layers.variance_scaling_initializer()
 
-        char_list = string.ascii_lowercase + '\' -'
+        char_list = string.ascii_lowercase + "' -"
 
         self.char_to_id = {c: i for i, c in enumerate(char_list)}
         self.id_to_char = {i: c for i, c in enumerate(char_list)}
@@ -551,7 +575,7 @@ class FFSpeechModel(CTCSpeechModel):
 
     @with_graph
     def build(self, decay_steps=8000, decay_rate=0.7, quantize=False):
-        '''Build all necessary ops into the object's tensorflow graph'''
+        """Build all necessary ops into the object's tensorflow graph"""
         if self.built:
             raise RuntimeError("Graph has already been built! Please reset.")
 
@@ -559,22 +583,27 @@ class FFSpeechModel(CTCSpeechModel):
 
         global_step = tf.Variable(0, trainable=False)
         learning_rate = tf.train.exponential_decay(
-            self.rate, global_step, decay_steps, decay_rate, staircase=False)
+            self.rate, global_step, decay_steps, decay_rate, staircase=False
+        )
 
         self.inputs = tf.placeholder(tf.float32, [None, None])
         self.targets = tf.placeholder(tf.int32, [None, None])
-        
+
         # build the feedforward branch of the network
-        char_scopes = ['char_layer_' + str(n) for n in range(self.n_layers)]
-        char_out_scope = 'char_output'
+        char_scopes = ["char_layer_" + str(n) for n in range(self.n_layers)]
+        char_out_scope = "char_output"
 
         x_char = self.build_ff_branch(self.inputs, char_scopes)
-        self.char_out = self.ff_layer(x_char, self.n_per_layer, self.n_chars,
-                                 char_out_scope, logits=True)
-        
-        self.cost = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(
-                labels=self.targets, logits=self.char_out))
-        
+        self.char_out = self.ff_layer(
+            x_char, self.n_per_layer, self.n_chars, char_out_scope, logits=True
+        )
+
+        self.cost = tf.reduce_sum(
+            tf.nn.softmax_cross_entropy_with_logits_v2(
+                labels=self.targets, logits=self.char_out
+            )
+        )
+
         if quantize:
             tf.contrib.quantize.create_training_graph(input_graph=self.graph)
 
@@ -585,14 +614,14 @@ class FFSpeechModel(CTCSpeechModel):
 
         optimizer = tf.train.RMSPropOptimizer(learning_rate)
 
-        self.train_step = optimizer.apply_gradients(zip(grads, tvars),
-                                                    global_step=global_step)
-        
+        self.train_step = optimizer.apply_gradients(
+            zip(grads, tvars), global_step=global_step
+        )
 
         self.built = True
 
     def train(self, data, rate, bsize=64, n_epochs=10, resume=False):
-        '''Train the model on a dataset of unbatched audio/text pairs'''
+        """Train the model on a dataset of unbatched audio/text pairs"""
         if resume:
             self.load(self.checkpoints)
         else:
@@ -603,14 +632,14 @@ class FFSpeechModel(CTCSpeechModel):
         accum_loss = 0
 
         # create batches from learned alignments
-        inputs = np.squeeze(data['inp'])
-        targets = np.squeeze(data['out'])
+        inputs = np.squeeze(data["inp"])
+        targets = np.squeeze(data["out"])
 
         batches = []
 
         for idx in range(0, len(inputs), bsize):
-            batch_inputs = inputs[idx:idx + bsize]
-            batch_targets = targets[idx:idx + bsize]
+            batch_inputs = inputs[idx : idx + bsize]
+            batch_targets = targets[idx : idx + bsize]
 
             batch = (batch_inputs, batch_targets)
             batches.append(batch)
@@ -620,12 +649,15 @@ class FFSpeechModel(CTCSpeechModel):
 
             for batch in batches:
 
-                feed_dict = {self.rate: rate,
-                             self.inputs: batch[0],
-                             self.targets: batch[1]}
+                feed_dict = {
+                    self.rate: rate,
+                    self.inputs: batch[0],
+                    self.targets: batch[1],
+                }
 
-                cost, _ = self.sess.run([self.cost, self.train_step],
-                                        feed_dict=feed_dict)
+                cost, _ = self.sess.run(
+                    [self.cost, self.train_step], feed_dict=feed_dict
+                )
 
                 # TF warnings are sufficient, don't want inf cost for epoch
                 if not np.isinf(cost):
@@ -639,13 +671,13 @@ class FFSpeechModel(CTCSpeechModel):
 
     @with_graph
     def predict_text(self, inputs):
-        '''Feed data through the inference graph to predict text'''
+        """Feed data through the inference graph to predict text"""
         self.check_build_status()
 
         feed_dict = {self.inputs: inputs}
         outputs = self.sess.run(self.char_out, feed_dict=feed_dict)
 
         ids = np.argmax(outputs, axis=1)
-        text = ''.join(self.id_to_char[i] for i in ids)
+        text = "".join(self.id_to_char[i] for i in ids)
 
         return text

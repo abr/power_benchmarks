@@ -22,12 +22,11 @@ args.nx_neurons = args.nx_neurons if args.nx_neurons else 1
 # handles 2 layer keyword spotter, either functional or with nx_neurons/layer
 if not args.scaled:
 
-    with open('./data/inference_weights.pkl', 'rb') as pfile:
+    with open("./data/inference_weights.pkl", "rb") as pfile:
         weights = pickle.load(pfile)
 
     # build the model using weights from previously trained model
-    model = TensorflowModel(n_inputs=390, n_layers=2, 
-                            n_per_layer=args.nx_neurons * 256)
+    model = TensorflowModel(n_inputs=390, n_layers=2, n_per_layer=args.nx_neurons * 256)
     model.build(n_copies=args.n_copies)
     model.start_session()
 
@@ -35,20 +34,26 @@ if not args.scaled:
         model.set_weights(weights)
 
     model.save(args.ckpt)
-    model.set_tensorboard_summary('./tensorboard')
+    model.set_tensorboard_summary("./tensorboard")
 
-    os.system('mvNCCompile %s.meta -s 12 -in inputs -on copy_0/char_output/outputs -o %s.graph' % (args.ckpt, args.ckpt))
+    os.system(
+        "mvNCCompile %s.meta -s 12 -in inputs -on copy_0/char_output/outputs -o %s.graph"
+        % (args.ckpt, args.ckpt)
+    )
 
-    print('Movidius graph compiled successfully!')
+    print("Movidius graph compiled successfully!")
 
 # handles case of scaling network with multiple copies/layers (see paper)
-else: 
+else:
     model = ScaledModel(n_inputs=390, n_copies=args.n_copies, n_layers=args.n_layers)
     model.build()
     model.start_session()
     model.save(args.ckpt)
-    model.set_tensorboard_summary('./tensorboard/')
+    model.set_tensorboard_summary("./tensorboard/")
 
-    os.system('mvNCCompile %s.meta -s 12 -in inputs -on char_output/outputs -o %s.graph' % (args.ckpt, args.ckpt))
+    os.system(
+        "mvNCCompile %s.meta -s 12 -in inputs -on char_output/outputs -o %s.graph"
+        % (args.ckpt, args.ckpt)
+    )
 
-    print('Movidius graph compiled successfully!')
+    print("Movidius graph compiled successfully!")
