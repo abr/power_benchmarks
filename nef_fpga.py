@@ -177,31 +177,54 @@ stats = {
 # First and last inputs are doubled to allow for the FPGA latency/startup?
 # Not sure if we need padded final input or not, (in theory we do)
 # have not confirmed, though it is functional with only doubled first input
-all_inputs = []
-for features, text in test_data:
-    if len(all_inputs) == 0:
-        all_inputs = np.vstack((np.squeeze(features)[0],
-                                np.squeeze(features),
-                                np.squeeze(features)[-1]))
+def prep_input(net, USE_FPGA):
+    all_inputs = []
+    if USE_FPGA in [0, 1, 2]:
+        offset = 1
+        for features, text in test_data:
+            if len(all_inputs) == 0:
+                all_inputs = np.vstack((
+                                        np.squeeze(features)[:offset],
+                                        # np.zeros(inp_dim),
+                                        np.squeeze(features),
+                                        np.squeeze(features)[-offset:]
+                                        # np.zeros(inp_dim),
+                                        ))
+            else:
+                all_inputs = np.vstack((all_inputs,
+                                        np.squeeze(features)[:offset],
+                                        # np.zeros(inp_dim),
+                                        np.squeeze(features),
+                                        np.squeeze(features)[-offset:]
+                                        # np.zeros(inp_dim),
+                                        ))
     else:
-        all_inputs = np.vstack((all_inputs,
-                                np.squeeze(features)[0],
-                                np.squeeze(features),
-                                np.squeeze(features)[-1]))
-
-feed = create_stream(all_inputs)
-net.inp.output = feed
+        offset = 0
+        for features, text in test_data:
+            if len(all_inputs) == 0:
+                all_inputs = np.squeeze(features)
+            else:
+                all_inputs = np.vstack((all_inputs,
+                                        np.squeeze(features),
+                                        ))
+    
+    feed = create_stream(all_inputs)
+    net.inp.output = feed
+    return offset
 
 idx = 0
 sample = 0
+
+offset = prep_input(net, USE_FPGA)
+
 with nengo_fpga.Simulator(net) as sim:
-    for features, text in test_data:
+    for features, text in test_data[:1]:
         inputs = np.squeeze(features)
-        n_steps = inputs.shape[0] + 2  # Padded inputs
+        n_steps = inputs.shape[0] + 2*offset# 2 (repeated final input) # Padded inputs
 
         sim.run_steps(n_steps)
 
-        results = sim.data[probe][idx + 1:]  # Ignore first output from FPGA
+        results = sim.data[probe][idx + 2*offset:]  # Ignore first output from FPGA
         ids = np.argmax(results, axis=1)
         chars = [id_to_char[x] for x in ids]
 
@@ -227,12 +250,16 @@ with nengo_fpga.Simulator(net) as sim:
         idx += n_steps
         sample += 1
 
+# res_idx = [2*offset, 5 + 2*offset]
+res_idx = [-5, -1]
 print("FPGA?", USE_FPGA)
-# print("L0-in", np.mean(sim.data[l0_in]), sim.data[l0_in].shape)
-# print("L0-out", np.mean(sim.data[l0_out][1:]), sim.data[l0_out].shape)
-# print("L01-dec", np.mean(sim.data[l01_dec][1:]), sim.data[l01_dec].shape)
-# print("L01-in", np.mean(sim.data[l01_in]), sim.data[l01_in].shape)
-# print("L01-out", np.mean(sim.data[l01_out][1:]), sim.data[l01_out].shape)
+# print("L0-in", sim.data[l0_in][1], sim.data[l0_in].shape)
+# print("L0-out", sim.data[l0_out][1], sim.data[l0_out].shape)
+# print("L01-dec", sim.data[l01_dec][1], sim.data[l01_dec].shape)
+# print("L01-in", np.mean(sim.data[l01_in][res_idx[0]:res_idx[1]], axis=1), sim.data[l01_in].shape)
+# print("L01-out", np.mean(sim.data[l01_out][res_idx[0]:res_idx[1]], axis=1), sim.data[l01_out].shape)
+print("L01-in", np.mean(sim.data[l01_in][2*offset:]), sim.data[l01_in][2*offset:].shape)
+print("L01-out", np.mean(sim.data[l01_out][2*offset:]), sim.data[l01_out][2*offset:].shape)
 
 print("Summary")
 print("=======")
