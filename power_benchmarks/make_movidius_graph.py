@@ -1,12 +1,8 @@
 import argparse
 import pickle
-import json
-import time
 import os
-import numpy as np
 
-from datetime import datetime
-from models import TensorflowModel, ScaledModel
+from power_benchmarks.models import TensorflowModel, ScaledModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--ckpt", type=str)
@@ -22,7 +18,7 @@ args.nx_neurons = args.nx_neurons if args.nx_neurons else 1
 # handles 2 layer keyword spotter, either functional or with nx_neurons/layer
 if not args.scaled:
 
-    with open("./data/inference_weights.pkl", "rb") as pfile:
+    with open("../data/inference_weights.pkl", "rb") as pfile:
         weights = pickle.load(pfile)
 
     # build the model using weights from previously trained model

@@ -10,7 +10,7 @@ load_data = False
 checkpoints = "./checkpoints/tf_ctc_model"
 
 
-with open("./keyword_data.pkl", "rb") as pfile:
+with open("keyword_data.pkl", "rb") as pfile:
     dataset = pickle.load(pfile)
 
 n_speakers = len(dataset["speakers"])

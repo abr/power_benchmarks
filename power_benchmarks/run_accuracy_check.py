@@ -1,9 +1,13 @@
 import argparse
 import pickle
-import numpy as np
 
-from models import TensorflowModel, MovidiusModel, MovidiusModelV2, TPUModel
-from utils import compute_tf_stats
+from power_benchmarks.models import (
+    TensorflowModel,
+    MovidiusModel,
+    MovidiusModelV2,
+    TPUModel,
+)
+from power_benchmarks.utils import compute_tf_stats
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpu", action="store_true")
@@ -15,14 +19,14 @@ parser.add_argument("--mov_graph", type=str)
 args = parser.parse_args()
 
 # load parameters and data
-with open("./data/test_data.pkl", "rb") as pfile:
+with open("../data/test_data.pkl", "rb") as pfile:
     test_data = pickle.load(pfile)
 
-with open("./data/train_data.pkl", "rb") as pfile:
+with open("../data/train_data.pkl", "rb") as pfile:
     train_data = pickle.load(pfile)
 
 if args.cpu or args.gpu:
-    with open("./data/inference_weights.pkl", "rb") as pfile:
+    with open("../data/inference_weights.pkl", "rb") as pfile:
         weights = pickle.load(pfile)
 
     # build the model using weights from previously trained model

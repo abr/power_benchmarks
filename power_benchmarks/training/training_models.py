@@ -1,4 +1,3 @@
-import features
 import pickle
 import random
 import string
@@ -7,8 +6,14 @@ import numpy as np
 import tensorflow as tf
 
 from copy import deepcopy
-from training_utils import with_graph, normalize
-from training_utils import NengoSample, build_arrays, convert_to_onehot
+
+from power_benchmarks.training import features
+from power_benchmarks.training.training_utils import with_graph, normalize
+from power_benchmarks.training.training_utils import (
+    NengoSample,
+    build_arrays,
+    convert_to_onehot,
+)
 
 
 class CTCSpeechModel(object):

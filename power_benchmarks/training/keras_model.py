@@ -31,14 +31,14 @@ print(model.inputs)
 print(model.outputs)
 
 # load the audio files collected from turkers
-with open("./keyword_data.pkl", "rb") as pfile:
+with open("keyword_data.pkl", "rb") as pfile:
     dataset = pickle.load(pfile)
 
 # load itemized train and test data for evaluation
-with open("../data/test_data.pkl", "rb") as pfile:
+with open("../../data/test_data.pkl", "rb") as pfile:
     test_data = pickle.load(pfile)
 
-with open("../data/train_data.pkl", "rb") as pfile:
+with open("../../data/train_data.pkl", "rb") as pfile:
     train_data = pickle.load(pfile)
 
 n_speakers = len(dataset["speakers"])

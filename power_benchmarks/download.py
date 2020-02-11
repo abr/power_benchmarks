@@ -51,7 +51,7 @@ def download_and_unzip(gdrive_id, filename, path):
 download_and_unzip(
     gdrive_id="1CubaXJsO-tHGqIZCE_cCJ6HD97hI_5tm",
     filename="benchmark_data.zip",
-    path="./data/",
+    path="../data/",
 )
 
 # delete leftover zip files
@@ -61,7 +61,7 @@ os.remove("./benchmark_data.zip")
 download_and_unzip(
     gdrive_id="13JAKf2foL48DH8DO_RD_hx8MCxSdtCcu",
     filename="./abr_keyword_dataset.zip",
-    path="./training/",
+    path="training/",
 )
 
 # delete leftover zip files

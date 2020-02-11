@@ -5,7 +5,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
-from analysis import load_running_samples, load_idle_samples, average_idle_power
+from power_benchmarks.analysis import (
+    load_running_samples,
+    load_idle_samples,
+    average_idle_power,
+)
 
 sns.set()
 

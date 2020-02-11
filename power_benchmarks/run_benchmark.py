@@ -5,7 +5,12 @@ import time
 import numpy as np
 
 from datetime import datetime
-from models import TensorflowModel, MovidiusModel, MovidiusModelV2, ScaledModel
+from power_benchmarks.models import (
+    TensorflowModel,
+    MovidiusModel,
+    MovidiusModelV2,
+    ScaledModel,
+)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpu", action="store_true")
@@ -29,11 +34,11 @@ args.n_copies = args.n_copies if args.n_copies is not None else 1
 args.nx_neurons = args.nx_neurons if args.nx_neurons is not None else 1
 
 # load data for piping into the keyword spotter
-with open("./data/test_data.pkl", "rb") as pfile:
+with open("../data/test_data.pkl", "rb") as pfile:
     data = pickle.load(pfile)
 
 # load the parameters for previously trained keyword spotter
-with open("./data/inference_weights.pkl", "rb") as pfile:
+with open("../data/inference_weights.pkl", "rb") as pfile:
     weights = pickle.load(pfile)
 
 

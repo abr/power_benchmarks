@@ -42,7 +42,7 @@ except ImportError:
 try:
     from edgetpu.basic.basic_engine import BasicEngine
 
-    model_path = "./checkpoints/movidius_edgetpu.tflite"
+    model_path = "../checkpoints/movidius_edgetpu.tflite"
     tpu_engine = BasicEngine(model_path)
 
 except ImportError:

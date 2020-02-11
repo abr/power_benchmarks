@@ -9,13 +9,13 @@ from training_models import CTCSpeechModel
 
 dummy_model = CTCSpeechModel(n_speakers=96)
 
-with open("../data/train_data.pkl", "rb") as pfile:
+with open("../../data/train_data.pkl", "rb") as pfile:
     train_data = pickle.load(pfile)
 
-with open("../data/test_data.pkl", "rb") as pfile:
+with open("../../data/test_data.pkl", "rb") as pfile:
     test_data = pickle.load(pfile)
 
-with open("./keyword_data.pkl", "rb") as pfile:
+with open("keyword_data.pkl", "rb") as pfile:
     mturk = pickle.load(pfile)
 
 
