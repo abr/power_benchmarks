@@ -48,9 +48,6 @@ parser.add_argument("--fpga", type=int, default=-1)
 args = parser.parse_args()
 USE_FPGA = args.fpga
 
-nengo.rc.set("precision", "bits", "32")
-# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
-
 with nengo.Network(seed=1) as net:
     net.config[nengo.Connection].synapse = None
 
@@ -207,7 +204,7 @@ def prep_input(net, USE_FPGA):
                 all_inputs = np.vstack((all_inputs,
                                         np.squeeze(features),
                                         ))
-    
+
     feed = create_stream(all_inputs)
     net.inp.output = feed
     return offset
@@ -218,7 +215,7 @@ sample = 0
 offset = prep_input(net, USE_FPGA)
 
 with nengo_fpga.Simulator(net) as sim:
-    for features, text in test_data[:1]:
+    for features, text in test_data[:20]:
         inputs = np.squeeze(features)
         n_steps = inputs.shape[0] + 2*offset# 2 (repeated final input) # Padded inputs
 
