@@ -10,3 +10,4 @@ nengo==2.8.0
 -e git+git@github.com:nengo/nengo-dl.git@4294dfd01b862442ac2262830200fe97effe6db9#egg=nengo_dl
 nengo-ocl==1.4.0  # Not compatible with nengo 3.0
 requests==2.22.0
+simpleaudio==1.0.4

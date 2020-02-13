@@ -4,6 +4,8 @@ https://github.com/nengo/nengo-examples/tree/speech_models/speech
 """
 import pickle
 import numpy as np
+import simpleaudio as sa
+import os
 
 import nengo
 from nengo.solvers import NoSolver
@@ -28,7 +30,8 @@ out_dim = 29
 neuron_type = nengo.RectifiedLinear()
 
 n_samples = 100  # How many input samples to prepare
-input_pad = 750  # How many timesteps to pad between input samples
+input_pad = 800  # How many timesteps to pad between input samples
+audio_dir = "./audio"  # Where audio snippets are kept
 
 # Trained weights
 W_layer0 = weights["char_layer_0/weights"]
@@ -133,6 +136,10 @@ def prep_input(net, offset=1000, samples=50):
     return offset, all_correct
 
 
+# Grab audio file names for playback
+(_, _, audio_files) = next(os.walk(audio_dir))
+audio_files.sort(key=lambda x: int(x.split("_")[0]))
+
 offset, correct_text = prep_input(model, offset=input_pad, samples=n_samples)
 dt = 0.001
 
@@ -163,12 +170,16 @@ with model:
         char = id_to_char[np.argmax(np.bincount(window))]
 
         # Clear prediction for new sample
-        if round(t / dt) % (2 * offset) == 0:
+        if round(t / dt) % (2 * offset) == 0 and t > dt:
             result_func._nengo_html_ = (
                 "<strong>Sample " + str(sample[0]) + "<hr/>" +
                 "Correct text: </strong>" + str(correct_text[sample[0]]) +
                 "<br/><strong>Prediction: </strong> "
             )
+
+            # Play audio clip
+            audio_clip = os.path.join(audio_dir, audio_files[sample[0]])
+            _ = sa.WaveObject.from_wave_file(audio_clip).play()
             sample[0] += 1
 
         # Append new char if it's not null or repeated
@@ -195,8 +206,12 @@ with model:
 
         return None
 
+    result_func._nengo_html_ = (
+        "<strong>Sample " + str(sample[0]) + "</strong> <hr/>"
+    )
     result = nengo.Node(result_func, size_in=29, label="Characters")
     nengo.Connection(filtered_output, result)
 
+    decision_func._nengo_html_ = "<strong>Decision:</strong> "
     accept = nengo.Node(decision_func, size_in=29, label="Decision")
     nengo.Connection(filtered_output, accept)

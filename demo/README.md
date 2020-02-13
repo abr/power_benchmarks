@@ -49,6 +49,8 @@ Now go into the nengo-fpga install and setup the config. Update
 
 ### Likely Complications
 
+#### Backends
+
 It's possible the ``nengo-ocl`` install fails, in which case please look at [the
 nengo-ocl documentation](https://github.com/nengo/nengo-ocl) for how to
 troubleshoot and install ``nengo-ocl``.
@@ -61,6 +63,31 @@ for more information.
 
 You can still use the other backends (e.g. ``nengo``, ``nengo-fpga``) even if
 some backends fail to correctly install.
+
+
+#### Audio playback
+
+It's possible ``simpleaudio`` fails to install due to dependencies. For Linux,
+try installing the following with your package manager:
+
+```
+sudo apt install -y python3-dev libasound2-dev
+```
+
+You can also try installing from conda instead:
+```
+conda install -c skmad simpleaudio
+```
+
+If this is giving you too much trouble, you can also comment out the audio. In
+the ``keyword_demo.py`` file, comment out the following two lines:
+```
+7   import simpleaudio as sa
+
+...
+
+176             _ = sa.WaveObject.from_wave_file(audio_file).play()
+```
 
 
 ## Usage
