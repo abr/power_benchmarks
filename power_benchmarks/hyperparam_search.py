@@ -70,7 +70,7 @@ with tf.device("/cpu:0"):
         y=y_data,
         validation_split=0.2,
         batch_size=int(params["minibatch_size"]),
-        epochs=int(params["TRIAL_BUDGET"]),
+        epochs=10,
         callbacks=[SendMetrics()],
         verbose=2,
     )
