@@ -13,6 +13,7 @@ n_features = 26
 n_frames = 15
 char_list = string.ascii_lowercase + "' -"
 n_chars = len(char_list)
+sparse_weight = 0.5
 
 with open("../data/ctc_data.pkl", "rb") as pfile:
     ff_data = pickle.load(pfile)
@@ -58,7 +59,7 @@ class SendMetrics(tf.keras.callbacks.Callback):
     """
 
     def on_epoch_end(self, epoch, logs=None):
-        nni.report_intermediate_result(sparsity + logs["val_accuracy"])
+        nni.report_intermediate_result(sparsity * sparse_weight + logs["val_accuracy"])
 
 
 opt_kwargs = {"learning_rate": params["learning_rate"]}
@@ -80,9 +81,9 @@ with tf.device("/cpu:0"):
         y=y_data,
         validation_split=0.2,
         batch_size=int(params["minibatch_size"]),
-        epochs=20,
+        epochs=int(params["TRIAL_BUDGET"]),
         callbacks=[SendMetrics()],
         verbose=2,
     )
 
-nni.report_final_result(sparsity + history.history["val_accuracy"][-1])
+nni.report_final_result(sparsity * sparse_weight + history.history["val_accuracy"][-1])

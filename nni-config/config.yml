@@ -6,19 +6,25 @@ maxTrialNum: 1000
 trainingServicePlatform: local
 searchSpacePath: search_space.json
 useAnnotation: false
-logDir: ..\data\nni\experiment
-tuner:
-  #choice: TPE, Random, Anneal, Evolution, BatchTuner, MetisTuner, GPTuner
-  #SMAC (SMAC should be installed through nnictl)
-  builtinTunerName: TPE
+logDir: D:\Documents\abr\power_benchmarks\data\nni\experiment
+#tuner:
+#  #choice: TPE, Random, Anneal, Evolution, BatchTuner, MetisTuner, GPTuner
+#  #SMAC (SMAC should be installed through nnictl)
+#  builtinTunerName: TPE
+#  classArgs:
+#    optimize_mode: maximize
+#assessor:
+#  builtinAssessorName: Curvefitting
+#  classArgs:
+#    optimize_mode: maximize
+#    epoch_num: 20
+#    threshold: 0.9
+advisor:
+  builtinAdvisorName: Hyperband
   classArgs:
+    R: 20
+    eta: 3
     optimize_mode: maximize
-assessor:
-  builtinAssessorName: Curvefitting
-  classArgs:
-    optimize_mode: maximize
-    epoch_num: 20
-    threshold: 0.9
 trial:
   command: D:\Miniconda3\envs\power_benchmarks\python hyperparam_search.py
   codeDir: ..\power_benchmarks

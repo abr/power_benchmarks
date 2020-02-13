@@ -1,2 +1,5 @@
 *.DS_Store
 /.idea
+/power_benchmarks.egg-info
+*.pyc
+/data/nni/experiment
