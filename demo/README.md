@@ -10,10 +10,16 @@ description across multiple backends with ease!
 
 ## Installation
 
+First download the source from the ``power_benchmarks`` repository, we are using
+the ``fpga`` branch:
+```
+git clone https://github.com/abr/power_benchmarks.git --branch fpga
+```
+
 It is recommended to use a virtual environment such as conda, but this is not
 strictly necessary. The instructions here assume conda is being used.
 
-First create your environment under Python 3.6 and activate it.
+Create your environment under Python 3.6 and activate it.
 ```
 conda create -n keyword_demo python=3.6
 conda activate keyword_demo
@@ -48,10 +54,13 @@ nengo-ocl documentation](https://github.com/nengo/nengo-ocl) for how to
 troubleshoot and install ``nengo-ocl``.
 
 Similarly, there may be modifications and torubleshooting required for
-``nengo-dl``. This demo uses Tensorflow 1.14. You may need to modify this to
-match the CUDA drivers on your machine. See [the nengo-dl
-documentation](https://www.nengo.ai/nengo-dl/) for more information.
+``nengo-dl``. This demo uses Tensorflow 1.12 (for CUDA 9.0). You may need to
+modify this to match the CUDA drivers on your machine. See
+[the nengo-dl documentation](https://www.nengo.ai/nengo-dl/)
+for more information.
 
+You can still use the other backends (e.g. ``nengo``, ``nengo-fpga``) even if
+some backends fail to correctly install.
 
 
 ## Usage

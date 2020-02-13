@@ -1,6 +1,6 @@
 numpy==1.16.6
-tensorflow==1.14
-tensorflow-gpu==1.14
+tensorflow==1.12
+tensorflow-gpu==1.12
 nengo==2.8.0
 # nengo-fpga - v0.2.1 tag (before switching to nengo 3.0)
 -e git+git@github.com:nengo/nengo-fpga.git@25ae891f6cb9829312e3220ba1156e7c3024d6bb#egg=nengo_fpga

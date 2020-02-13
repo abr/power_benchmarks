@@ -43,36 +43,11 @@ b_output = weights["char_output/biases"]
 board = "pynq"  # FPGA name in the nengo-fpga config
 
 
-# Some helper functions
 def default_value(t, x):
     """Node function to predict blank character by default"""
     y = x + 100  # Better visualize outputs by boosting them to +ve vals
     y[-1] += 1  # Bias null char so input padding doesn't predict chars
     return y
-
-
-def prep_input(net, offset=1000, samples=50):
-    """Prepare input samples with padding between for GUI"""
-    offset = offset  # Pad zeros between samples
-
-    all_inputs = np.zeros((offset, inp_dim))
-    all_correct = []
-
-    for features, text in test_data[:samples]:
-        all_inputs = np.vstack(
-            (
-                all_inputs,
-                np.zeros((offset, inp_dim)),
-                np.squeeze(features),
-                np.zeros((offset, inp_dim)),
-            )
-        )
-
-        all_correct.append(text)
-
-    feed = create_stream(all_inputs)
-    model.inp.output = feed
-    return offset, all_correct
 
 
 # Keyword spotter network
@@ -87,7 +62,7 @@ with nengo.Network(seed=1) as model:
         n_neurons=n_neurons,
         dimensions=n_neurons,
         learning_rate=0,
-        label="Layer 0 (FPGA)",
+        label="Layer 0",
     )
     layer_0.ensemble.neuron_type = neuron_type
     layer_0.ensemble.bias = b_layer0
@@ -126,12 +101,36 @@ with nengo.Network(seed=1) as model:
 
     model.inp = inp
 
-    # filter and bias towards predicting blank symbol by default
+    # Filter and bias towards predicting blank symbol by default
     filtered_output = nengo.Node(
         default_value, size_in=29, size_out=29, label="Filtered Output"
     )
 
     nengo.Connection(out, filtered_output)
+
+
+def prep_input(net, offset=1000, samples=50):
+    """Prepare input samples with padding between for GUI"""
+    offset = offset  # Pad zeros between samples
+
+    all_inputs = np.zeros((offset, inp_dim))
+    all_correct = []
+
+    for features, text in test_data[:samples]:
+        all_inputs = np.vstack(
+            (
+                all_inputs,
+                np.zeros((offset, inp_dim)),
+                np.squeeze(features),
+                np.zeros((offset, inp_dim)),
+            )
+        )
+
+        all_correct.append(text)
+
+    feed = create_stream(all_inputs)
+    model.inp.output = feed
+    return offset, all_correct
 
 
 offset, correct_text = prep_input(model, offset=input_pad, samples=n_samples)
