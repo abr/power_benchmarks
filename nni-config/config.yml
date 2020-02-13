@@ -1,12 +1,11 @@
 authorName: drasmuss
 experimentName: Keyword Spotter Hyperparam Search
-trialConcurrency: 3
+trialConcurrency: 5
 maxExecDuration: 1h
-maxTrialNum: 1000
 trainingServicePlatform: local
 searchSpacePath: search_space.json
 useAnnotation: false
-logDir: D:\Documents\abr\power_benchmarks\data\nni\experiment
+logDir: /home/drasmuss/power_benchmarks/data/nni/experiment
 #tuner:
 #  #choice: TPE, Random, Anneal, Evolution, BatchTuner, MetisTuner, GPTuner
 #  #SMAC (SMAC should be installed through nnictl)
@@ -26,5 +25,5 @@ advisor:
     eta: 3
     optimize_mode: maximize
 trial:
-  command: D:\Miniconda3\envs\power_benchmarks\python hyperparam_search.py
-  codeDir: ..\power_benchmarks
+  command: /home/drasmuss/.conda/envs/power_benchmarks/bin/python hyperparam_search.py
+  codeDir: ../power_benchmarks

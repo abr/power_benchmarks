@@ -24,25 +24,14 @@ x_data = ff_data["inp"][permutation, 0]
 y_data = ff_data["out"][permutation, 0]
 
 params = nni.get_next_parameter()
-# params = {
-#     "layer_0": {"_name": "Dense", "n_neurons": 256.0},
-#     "layer_1": {"_name": "None"},
-#     "layer_2": {"_name": "Dense", "n_neurons": 64.0},
-#     "layer_3": {"_name": "Dense", "n_neurons": 128.0},
-#     "layer_4": {"_name": "None"},
-#     "optimizer": "rmsprop",
-#     "minibatch_size": 64.0,
-#     "learning_rate": 2.150807845419494e-05,
-#     "grad_norm_clip": "None",
-# }
 print("params")
 print(params)
 
 inputs = x = tf.keras.Input(shape=(n_features * n_frames,))
 for i in range(5):
-    if params["layer_%d" % i]["_name"] != "None":
+    if params["layer_%d" % i] > 0:
         x = tf.keras.layers.Dense(
-            units=int(params["layer_%d" % i]["n_neurons"]), activation=tf.nn.relu
+            units=int(params["layer_%d" % i]), activation=tf.nn.relu
         )(x)
 outputs = tf.keras.layers.Dense(units=n_chars)(x)
 
