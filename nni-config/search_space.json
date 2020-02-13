@@ -1,0 +1,41 @@
+{
+  "layer_0": {
+    "_type": "choice",
+    "_value": [
+      {"_name": "None"},
+      {"_name": "Dense", "n_neurons": {"_type": "quniform", "_value": [32, 256, 32]}}
+      ]
+  },
+  "layer_1": {
+    "_type": "choice",
+    "_value": [
+      {"_name": "None"},
+      {"_name": "Dense", "n_neurons": {"_type": "quniform", "_value": [32, 256, 32]}}
+      ]
+  },
+  "layer_2": {
+    "_type": "choice",
+    "_value": [
+      {"_name": "None"},
+      {"_name": "Dense", "n_neurons": {"_type": "quniform", "_value": [32, 256, 32]}}
+      ]
+  },
+  "layer_3": {
+    "_type": "choice",
+    "_value": [
+      {"_name": "None"},
+      {"_name": "Dense", "n_neurons": {"_type": "quniform", "_value": [32, 256, 32]}}
+      ]
+  },
+  "layer_4": {
+    "_type": "choice",
+    "_value": [
+      {"_name": "None"},
+      {"_name": "Dense", "n_neurons": {"_type": "quniform", "_value": [32, 256, 32]}}
+      ]
+  },
+  "optimizer": {"_type": "choice", "_value": ["rmsprop", "adam"]},
+  "minibatch_size": {"_type": "quniform", "_value": [16, 64, 16]},
+  "learning_rate": {"_type": "loguniform", "_value": [1e-5, 1e-3]},
+  "grad_norm_clip": {"_type": "choice", "_value": [1, 5, 10, "None"]}
+}

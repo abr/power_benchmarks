@@ -1,0 +1,24 @@
+authorName: drasmuss
+experimentName: Keyword Spotter Hyperparam Search
+trialConcurrency: 3
+maxExecDuration: 1h
+maxTrialNum: 1000
+trainingServicePlatform: local
+searchSpacePath: search_space.json
+useAnnotation: false
+logDir: ..\data\nni\experiment
+tuner:
+  #choice: TPE, Random, Anneal, Evolution, BatchTuner, MetisTuner, GPTuner
+  #SMAC (SMAC should be installed through nnictl)
+  builtinTunerName: TPE
+  classArgs:
+    optimize_mode: maximize
+assessor:
+  builtinAssessorName: Curvefitting
+  classArgs:
+    optimize_mode: maximize
+    epoch_num: 20
+    threshold: 0.9
+trial:
+  command: D:\Miniconda3\envs\power_benchmarks\python hyperparam_search.py
+  codeDir: ..\power_benchmarks
