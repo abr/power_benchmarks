@@ -49,33 +49,30 @@ def download_and_unzip(gdrive_id, filename, path):
 
 
 # Download pickled data handler
+print("Downloading benchmark data...")
 download_and_unzip(
     gdrive_id='1CubaXJsO-tHGqIZCE_cCJ6HD97hI_5tm',
     filename='benchmark_data.zip', path='./data/')
-
-# Delete leftover zip files
-os.remove('./benchmark_data.zip')
+os.remove('./benchmark_data.zip')  # Delete leftover zip files
 
 # Download pickled data handler
+print("Downloading training data...")
 download_and_unzip(
     gdrive_id='13JAKf2foL48DH8DO_RD_hx8MCxSdtCcu',
     filename='./abr_keyword_dataset.zip', path='./training/')
-
-# Delete leftover zip files
-os.remove('./abr_keyword_dataset.zip')
+os.remove('./abr_keyword_dataset.zip')  # Delete leftover zip files
 
 # Download 180 neuron trained weights
+print("Downloading trained weights...")
 download_and_unzip(
-    gdrive_id='16K2k9SoDUVI8hviVxcYGHiJf9y2jWTex',
+    gdrive_id='1VQADy5sk46KjE1gu86RILJ2yhv2vovL-',
     filename='./trained_weights_180.pkl.zip', path='./data/')
-
-# Delete leftover zip files
-os.remove('./trained_weights_180.pkl.zip')
+os.remove('./trained_weights_180.pkl.zip')  # Delete leftover zip files
 
 # Download audio clips
+print("Downloading audio clips...")
+os.system('mkdir -p ./demo/audio')
 download_and_unzip(
-    gdrive_id='16K2k9SoDUVI8hviVxcYGHiJf9y2jWTex',
-    filename='./audio_clips_for_demo.zip', path='./demo/audio')
-
-# Delete leftover zip files
-os.remove('./audio_clips_for_demo.zip')
+    gdrive_id='1R9EncCTMIWFXut-3UVXX3s9QVdOL9P7y',
+    filename='./audio_clips_for_demo.zip', path='./demo/audio/')
+os.remove('./audio_clips_for_demo.zip')  # Delete leftover zip files
