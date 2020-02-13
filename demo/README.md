@@ -35,13 +35,23 @@ pip install -r requirements.txt
 ```
 
 This will install compatible versions of ``nengo-gui``, ``nengo``,
-``nengo-fpga``, and ``nengo-ocl``. It's possible the ``nengo-ocl`` install
-fails, in which case please look at
-[the nengo-ocl documentation](https://github.com/nengo/nengo-ocl)
-for how to troubleshoot and install ``nengo-ocl``.
+``nengo-fpga``, ``nengo-dl``, and ``nengo-ocl``.
 
 Now go into the nengo-fpga install and setup the config. Update
 ``power_benchmarks/demo/src/nengo-fpga/fpga_config`` with your FPGA details.
+
+
+### Likely Complications
+
+It's possible the ``nengo-ocl`` install fails, in which case please look at [the
+nengo-ocl documentation](https://github.com/nengo/nengo-ocl) for how to
+troubleshoot and install ``nengo-ocl``.
+
+Similarly, there may be modifications and torubleshooting required for
+``nengo-dl``. This demo uses Tensorflow 1.14. You may need to modify this to
+match the CUDA drivers on your machine. See [the nengo-dl
+documentation](https://www.nengo.ai/nengo-dl/) for more information.
+
 
 
 ## Usage
@@ -70,6 +80,7 @@ can be easily changed in the GUI:
 1. In the top left, click the _utilities_ wrench icon.
 2. Click _configure Settings_.
 3. Select the desired backend from the drop down menu.
+
 
 **NOTE** With the ``nengo-fpga`` backend selected, there will be roughly a
 10-15s pause after you click the play button. This is expected and is the
