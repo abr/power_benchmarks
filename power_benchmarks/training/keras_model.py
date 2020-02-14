@@ -9,10 +9,9 @@ from training_models import CTCSpeechModel
 from training_utils import compute_stats
 
 
-n_layers = 2
-n_per_layer = 256
 n_features = 26
 n_frames = 15
+hidden_layers = [32, 32, 32]
 
 char_list = string.ascii_lowercase + "' -"
 char_to_id = {c: i for i, c in enumerate(char_list)}
@@ -21,14 +20,15 @@ n_chars = len(char_list)
 
 # set up ff model
 inputs = x = tf.keras.Input(shape=(n_features * n_frames,))
-for i in range(n_layers):
-    x = tf.keras.layers.Dense(units=n_per_layer, activation=tf.nn.relu)(x)
+for n in hidden_layers:
+    x = tf.keras.layers.Dense(units=n, activation=tf.nn.relu)(x)
 outputs = tf.keras.layers.Dense(units=n_chars)(x)
 
 model = tf.keras.Model(inputs, outputs)
 print("built model")
 print(model.inputs)
 print(model.outputs)
+print(model.count_params(), model.count_params() / 173341)
 
 # load the audio files collected from turkers
 with open("keyword_data.pkl", "rb") as pfile:
@@ -41,17 +41,23 @@ with open("../../data/test_data.pkl", "rb") as pfile:
 with open("../../data/train_data.pkl", "rb") as pfile:
     train_data = pickle.load(pfile)
 
+with open("../../data/ctc_data.pkl", "rb") as pfile:
+    ff_data = pickle.load(pfile)
+
 n_speakers = len(dataset["speakers"])
 print("Speakers: %d" % n_speakers)
 print("Testing Items: %d" % len(dataset["test"]))
 print("Training Items: %d" % len(dataset["train"]))
 
 # load a tensorflow model that aligns audio windows with specific chars
-ctc_model = CTCSpeechModel(n_speakers=n_speakers)
-ctc_model.load("./checkpoints/tf_ctc_model")
-
-# convert data to (n_items, n_steps, n_features) format for batch training
-ff_data = ctc_model.create_nengo_data(dataset["train"], n_steps=1)
+# ctc_model = CTCSpeechModel(n_speakers=n_speakers)
+# ctc_model.load("./checkpoints/tf_ctc_model")
+#
+# # convert data to (n_items, n_steps, n_features) format for batch training
+# ff_data = ctc_model.create_nengo_data(dataset["train"], n_steps=1)
+#
+# with open("../../data/ctc_data.pkl", "wb") as pfile:
+#     pickle.dump(ff_data, pfile)
 
 # apply a fixed permutation to randomize the train/validation split
 permutation = np.random.RandomState(0).permutation(ff_data["inp"].shape[0])
@@ -62,34 +68,34 @@ print("loaded data")
 n_epochs = 20
 minibatch_size = 64
 validation_split = 0.2
+opt_kwargs = dict(learning_rate=6e-4, clipnorm=10.0)
 
 model.compile(
-    optimizer=tf.optimizers.RMSprop(5e-4, clipnorm=5.0),
+    optimizer=tf.optimizers.Adam(**opt_kwargs),
     loss=tf.losses.CategoricalCrossentropy(from_logits=True),
+    metrics=["accuracy"],
 )
-model.fit(
-    x=ff_data["inp"][permutation, 0],
-    y=ff_data["out"][permutation, 0],
-    validation_split=validation_split,
-    batch_size=minibatch_size,
-    epochs=n_epochs,
-    callbacks=[
-        # tf.keras.callbacks.LearningRateScheduler(
-        #     tf.optimizers.schedules.ExponentialDecay(
-        #         5e-4, decay_steps=8000, decay_rate=0.7, staircase=False
-        #     )
-        # ),
-        tf.keras.callbacks.ModelCheckpoint(
-            "checkpoints/keras_ff_model.tf",
-            save_best_only=True,
-            save_weights_only=True,
-        ),
-        tf.keras.callbacks.ReduceLROnPlateau(patience=3, factor=0.5),
-        tf.keras.callbacks.EarlyStopping(patience=10),
-    ],
-)
+with tf.device("/cpu:0"):
+    model.fit(
+        x=ff_data["inp"][permutation, 0],
+        y=ff_data["out"][permutation, 0],
+        validation_split=validation_split,
+        batch_size=minibatch_size,
+        epochs=n_epochs,
+        callbacks=[
+            tf.keras.callbacks.ModelCheckpoint(
+                "../../data/checkpoints/keras_ff_model.tf",
+                save_best_only=True,
+                save_weights_only=True,
+                monitor="val_accuracy",
+            ),
+            tf.keras.callbacks.EarlyStopping(monitor="val_accuracy", patience=5),
+        ],
+        verbose=2,
+    )
 
-model.load_weights("checkpoints/keras_ff_model.tf")
+
+model.load_weights("../../data/checkpoints/keras_ff_model.tf")
 
 print("Training Data Statistics:")
 compute_stats(model, train_data, id_to_char)
@@ -108,15 +114,10 @@ end_step = np.ceil(
 pruned_model = sparsity.prune_low_magnitude(
     model,
     pruning_schedule=sparsity.PolynomialDecay(
-        initial_sparsity=0.0, final_sparsity=0.8, begin_step=0, end_step=end_step
+        initial_sparsity=0.0, final_sparsity=0.5, begin_step=0, end_step=end_step
     ),
 )
 pruned_model.summary()
-
-pruned_model.compile(
-    optimizer=tf.optimizers.RMSprop(1e-4, clipnorm=5.0),
-    loss=tf.losses.CategoricalCrossentropy(from_logits=True),
-)
 
 
 def get_sparsity(m):
@@ -128,19 +129,28 @@ def get_sparsity(m):
 
 print("Initial sparsity", get_sparsity(pruned_model))
 
-pruned_model.fit(
-    x=ff_data["inp"][permutation, 0],
-    y=ff_data["out"][permutation, 0],
-    validation_split=validation_split,
-    batch_size=minibatch_size,
-    epochs=pruning_epochs,
-    callbacks=[
-        tf.keras.callbacks.ModelCheckpoint(
-            "checkpoints/keras_ff_model_pruned.tf", save_weights_only=True,
-        ),
-        sparsity.UpdatePruningStep(),
-    ],
+pruned_model.compile(
+    optimizer=tf.optimizers.Adam(**opt_kwargs),
+    loss=tf.losses.CategoricalCrossentropy(from_logits=True),
+    metrics=["accuracy"],
 )
+
+with tf.device("/cpu:0"):
+    pruned_model.fit(
+        x=ff_data["inp"][permutation, 0],
+        y=ff_data["out"][permutation, 0],
+        validation_split=validation_split,
+        batch_size=minibatch_size,
+        epochs=pruning_epochs,
+        callbacks=[
+            tf.keras.callbacks.ModelCheckpoint(
+                "../../data/checkpoints/keras_ff_model_pruned.tf",
+                save_weights_only=True,
+            ),
+            sparsity.UpdatePruningStep(),
+        ],
+        verbose=2,
+    )
 
 print("Final sparsity", get_sparsity(pruned_model))
 
