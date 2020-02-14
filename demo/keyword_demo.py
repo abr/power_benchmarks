@@ -172,9 +172,12 @@ with model:
         # Clear prediction for new sample
         if round(t / dt) % (2 * offset) == 0 and t > dt:
             result_func._nengo_html_ = (
-                "<strong>Sample " + str(sample[0]) + "<hr/>" +
-                "Correct text: </strong>" + str(correct_text[sample[0]]) +
-                "<br/><strong>Prediction: </strong> "
+                "<strong>Sample "
+                + str(sample[0])
+                + "<hr/>"
+                + "Correct text: </strong>"
+                + str(correct_text[sample[0]])
+                + "<br/><strong>Prediction: </strong> "
             )
 
             # Play audio clip
@@ -206,12 +209,20 @@ with model:
 
         return None
 
-    result_func._nengo_html_ = (
-        "<strong>Sample " + str(sample[0]) + "</strong> <hr/>"
-    )
+    def logo_node(t):
+        """Dummy node function to display image with HTML"""
+        pass
+
+    result_func._nengo_html_ = "<strong>Sample " + str(sample[0]) + "</strong> <hr/>"
     result = nengo.Node(result_func, size_in=29, label="Characters")
     nengo.Connection(filtered_output, result)
 
     decision_func._nengo_html_ = "<strong>Decision:</strong> "
     accept = nengo.Node(decision_func, size_in=29, label="Decision")
     nengo.Connection(filtered_output, accept)
+
+    logo_node._nengo_html_ = (
+        "<img src='https://appliedbrainresearch.com/img/logo-blue-notext.svg' "
+        "alt='ABR Logo' width=100%>"
+    )
+    nengo.Node(logo_node, label="Logo")

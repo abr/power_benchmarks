@@ -68,7 +68,8 @@ some backends fail to correctly install.
 #### Audio playback
 
 It's possible ``simpleaudio`` fails to install due to dependencies. For Linux,
-try installing the following with your package manager:
+try installing the following with your package manager then try installing
+``simpleaudio`` again:
 
 ```
 sudo apt install -y python3-dev libasound2-dev
@@ -86,7 +87,7 @@ the ``keyword_demo.py`` file, comment out the following two lines:
 
 ...
 
-176             _ = sa.WaveObject.from_wave_file(audio_file).play()
+182             _ = sa.WaveObject.from_wave_file(audio_file).play()
 ```
 
 
