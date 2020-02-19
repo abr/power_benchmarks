@@ -1,11 +1,13 @@
 # Multiple Backend Keyword Spotter Demo
 
 This is an example of a trained keyword spotter designed to recognize the word
-"aloha". This demo uses a test set of samples as input instead of using al ive
+"aloha". This demo uses a test set of samples as input instead of using a live
 microphone for ease of use.
 
 This demo also highlights Nengo's ability to run the same frontend Python
 description across multiple backends with ease!
+
+![screenshot](demo_screenshot.png)
 
 
 ## Installation
