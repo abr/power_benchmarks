@@ -2,6 +2,11 @@ import pickle
 import string
 
 import ignite
+from nni.compression.torch import (
+    AGP_Pruner,
+    LotteryTicketPruner,
+    apply_compression_results,
+)
 import numpy as np
 import torch
 
@@ -10,7 +15,7 @@ from power_benchmarks.training.training_utils import merge, allowed_text
 
 n_features = 26
 n_frames = 15
-hidden_layers = [32, 32, 32]
+hidden_layers = [256, 256]
 
 char_list = string.ascii_lowercase + "' -"
 char_to_id = {c: i for i, c in enumerate(char_list)}
@@ -24,23 +29,18 @@ class KWSpotter(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.hidden_layers = []
         prev_n = n_features * n_frames
-        for n in hidden_layers:
-            self.hidden_layers.append(torch.nn.Linear(prev_n, n))
-            self.hidden_layers.append(torch.nn.ReLU())
+        for i, n in enumerate(hidden_layers):
+            # assign to self so that it is tracked properly by pytorch
+            setattr(self, "layer_%d" % i, torch.nn.Linear(prev_n, n))
             prev_n = n
-
-        for i, l in enumerate(self.hidden_layers):
-            # make sure all the layers are tracked (since they aren't directly
-            # added to self)
-            self.add_module("layer_%d" % i, l)
 
         self.output = torch.nn.Linear(prev_n, n_chars)
 
     def forward(self, x):
-        for h in self.hidden_layers:
-            x = h(x)
+        for i in range(len(hidden_layers)):
+            x = getattr(self, "layer_%d" % i)(x)
+            x = torch.nn.functional.relu(x)
         return self.output(x)
 
 
@@ -143,7 +143,11 @@ def log_validation_results(trainer):
     )
 
 
-trainer.run(train_loader, max_epochs=n_epochs)
+# trainer.run(train_loader, max_epochs=n_epochs)
+# torch.save(model.state_dict(), "../../data/kw_weights")
+
+checkpoint = torch.load("../../data/kw_weights")
+model.load_state_dict(checkpoint)
 
 
 def compute_stats(model, data, id_to_char):
@@ -181,6 +185,70 @@ def compute_stats(model, data, id_to_char):
     print("True negative rate:\t%.3f" % (stats["tn"] / stats["not-aloha"]))
     print("False positive rate:\t%.3f" % (stats["fp"] / stats["not-aloha"]))
 
+
+print("Training Data Statistics:")
+compute_stats(model, train_data, id_to_char)
+print()
+print("Testing Data Statistics:")
+compute_stats(model, test_data, id_to_char)
+
+# prune the model
+pruning_epochs = 5
+
+
+def count_params():
+    nonzero = 0
+    params = 0
+    for param in model.parameters():
+        params += np.prod(param.size())
+        nonzero += np.count_nonzero(param.detach().numpy())
+
+    return nonzero / params
+
+
+print("initial sparsity", 1 - count_params())
+
+# pruner = AGP_Pruner(
+#     model,
+#     [
+#         {
+#             "initial_sparsity": 0,
+#             "final_sparsity": 0.9,
+#             "start_epoch": 0,
+#             "end_epoch": pruning_epochs,
+#             "frequency": 1,
+#             "op_types": ["default"],
+#         }
+#     ],
+# )
+pruner = LotteryTicketPruner(
+    model,
+    [{"prune_iterations": pruning_epochs, "sparsity": 0.8, "op_types": ["default"]}],
+    optimizer,
+)
+pruner.compress()
+
+
+@trainer.on(ignite.engine.Events.EPOCH_COMPLETED)
+def prune(trainer):
+    pruner.update_epoch(trainer.state.epoch)
+
+
+for i in pruner.get_prune_iterations():
+    print("PRUNING ITERATION", i)
+    pruner.prune_iteration_start()
+    trainer.run(train_loader, max_epochs=5)
+
+print("final tuning")
+trainer.run(train_loader, max_epochs=15)
+
+pruner.export_model(
+    model_path="../../data/kw_weights_pruned",
+    mask_path="../../data/kw_weights_pruned_masks",
+)
+apply_compression_results(model, "../../data/kw_weights_pruned_masks")
+
+print("final sparsity", 1 - count_params())
 
 print("Training Data Statistics:")
 compute_stats(model, train_data, id_to_char)
