@@ -10,7 +10,7 @@ except ImportError:
     has_requests = False
 
 # permissible transcriptions for computing accuracy stats
-allowed_text = ['loha', 'alha', 'aloa', 'aloh', 'aoha', 'aloha']
+allowed_text = ['loha', 'alha', 'aloa', 'aloh', 'aoha', 'aloha', 'aeloha']
 id_to_char = np.array([x for x in string.ascii_lowercase + '\' -'])
 
 

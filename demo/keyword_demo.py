@@ -30,8 +30,12 @@ out_dim = 29
 neuron_type = nengo.RectifiedLinear()
 
 n_samples = 100  # How many input samples to prepare
-input_pad = 800  # How many timesteps to pad between input samples
+# input_pad = 525  # How many timesteps to pad between input samples (video)
+input_pad = 800  # How many timesteps to pad between input samples (live)
 audio_dir = "./audio"  # Where audio snippets are kept
+
+text_delay = 200  # Play aduio this many steps before sample input (text display)
+font_size = 5
 
 # Trained weights
 W_layer0 = weights["char_layer_0/weights"]
@@ -158,7 +162,7 @@ with model:
         if t / dt < offset and sample[0] > 0:
             sample[0] = 0
             result_func._nengo_html_ = (
-                "<strong>Sample " + str(sample[0]) + "</strong> <hr/>"
+                "<font size='%d'><strong>Sample %d </strong></font><hr/>" % (font_size, sample[0])
             )
 
         # We aren't actually using this since we have sample data.
@@ -172,14 +176,12 @@ with model:
         # Clear prediction for new sample
         if round(t / dt) % (2 * offset) == 0 and t > dt:
             result_func._nengo_html_ = (
-                "<strong>Sample "
-                + str(sample[0])
-                + "<hr/>"
-                + "Correct text: </strong>"
-                + str(correct_text[sample[0]])
-                + "<br/><strong>Prediction: </strong> "
+                "<font size='%d'><strong>Sample %d <hr/>" % (font_size, sample[0] - 1)
+                + "Correct text: </strong> %s" % correct_text[sample[0] - 1]
+                + "<br/><strong>Prediction: </strong></font> "
             )
 
+        if round(t / dt) % (2 * offset) == 2 * offset - text_delay and t > dt:
             # Play audio clip
             audio_clip = os.path.join(audio_dir, audio_files[sample[0]])
             _ = sa.WaveObject.from_wave_file(audio_clip).play()
@@ -189,23 +191,24 @@ with model:
         if char != "-":
             if (
                 len(result_func._nengo_html_) == 0
-                or result_func._nengo_html_[-1] != char
+                or result_func._nengo_html_[-9] != char
             ):
-                result_func._nengo_html_ += char
+                result_func._nengo_html_ = result_func._nengo_html_[:-8] + char + result_func._nengo_html_[-8:]
 
         return None
 
     def decision_func(t, x):
         """Node function for displaying acceptance decision"""
-        decision_func._nengo_html_ = "<strong>Decision:</strong> "
-        phrase = result_func._nengo_html_.split()[-1]
+        decision_func._nengo_html_ = "<font size='%d'><strong>Decision:</strong></font> " % font_size
+        phrase = result_func._nengo_html_.split("<")[-2].split(">")[-1]
 
-        if phrase in allowed_text and display_count[0] < 1000:
-            decision_func._nengo_html_ += '\n <font color="green"> Accepted!</font>'
-            display_count[0] += 1
-        else:
-            decision_func._nengo_html_ += '\n <font color="red"> Not accepted!</font>'
-            display_count[0] = 0
+        if round(t / dt) % (2 * offset) > offset and t > 2 * offset * dt:
+            if phrase in allowed_text and display_count[0] < 1000:
+                decision_func._nengo_html_ += "\n <font size='%d' color='green'> Accepted!</font>" % font_size
+                display_count[0] += 1
+            else:
+                decision_func._nengo_html_ += "\n <font size='%d' color='red'> Not accepted!</font>" % font_size
+                display_count[0] = 0
 
         return None
 
@@ -213,11 +216,11 @@ with model:
         """Dummy node function to display image with HTML"""
         pass
 
-    result_func._nengo_html_ = "<strong>Sample " + str(sample[0]) + "</strong> <hr/>"
+    result_func._nengo_html_ = "<font size='%d'><strong>Sample %d </strong></font> <hr/>" % (font_size, sample[0])
     result = nengo.Node(result_func, size_in=29, label="Characters")
     nengo.Connection(filtered_output, result)
 
-    decision_func._nengo_html_ = "<strong>Decision:</strong> "
+    decision_func._nengo_html_ = "<font size='%d'><strong>Decision:</strong></font> " % font_size
     accept = nengo.Node(decision_func, size_in=29, label="Decision")
     nengo.Connection(filtered_output, accept)
 
