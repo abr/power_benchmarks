@@ -2,11 +2,7 @@ import pickle
 import string
 
 import ignite
-from nni.compression.torch import (
-    AGP_Pruner,
-    LotteryTicketPruner,
-    apply_compression_results,
-)
+from nni.compression.torch import QAT_Quantizer, NaiveQuantizer, BNNQuantizer
 import numpy as np
 import torch
 
@@ -33,6 +29,7 @@ class KWSpotter(torch.nn.Module):
         for i, n in enumerate(hidden_layers):
             # assign to self so that it is tracked properly by pytorch
             setattr(self, "layer_%d" % i, torch.nn.Linear(prev_n, n))
+            setattr(self, "relu_%d" % i, torch.nn.ReLU())
             prev_n = n
 
         self.output = torch.nn.Linear(prev_n, n_chars)
@@ -40,7 +37,7 @@ class KWSpotter(torch.nn.Module):
     def forward(self, x):
         for i in range(len(hidden_layers)):
             x = getattr(self, "layer_%d" % i)(x)
-            x = torch.nn.functional.relu(x)
+            x = getattr(self, "relu_%d" % i)(x)
         return self.output(x)
 
 
@@ -192,66 +189,44 @@ print()
 print("Testing Data Statistics:")
 compute_stats(model, test_data, id_to_char)
 
-# prune the model
-pruning_epochs = 5
-
-
-def count_params():
-    nonzero = 0
-    params = 0
-    for param in model.parameters():
-        params += np.prod(param.size())
-        nonzero += np.count_nonzero(param.detach().numpy())
-
-    return nonzero / params
-
-
-print("initial sparsity", 1 - count_params())
-
-# pruner = AGP_Pruner(
+# quantizer = QAT_Quantizer(model)
+# quantizer = NaiveQuantizer(
+#     model,
+#     [{"quant_types": ["weight"], "quant_bits": {"weight": 8}, "op_types": ["default"]}],
+# )
+quantizer = QAT_Quantizer(
+    model,
+    [
+        {
+            "quant_types": ["weight"],
+            "quant_bits": {"weight": 8},
+            "op_types": ["default"],
+        },
+        {"quant_types": ["output"], "quant_bits": 10, "op_types": ["ReLU"]},
+    ],
+)
+# quantizer = BNNQuantizer(
 #     model,
 #     [
-#         {
-#             "initial_sparsity": 0,
-#             "final_sparsity": 0.9,
-#             "start_epoch": 0,
-#             "end_epoch": pruning_epochs,
-#             "frequency": 1,
-#             "op_types": ["default"],
-#         }
+#         {"quant_bits": 1, "quant_types": ["weight"], "op_types": ["default"],},
+#         {"quant_bits": 1, "quant_types": ["output"], "op_types": ["ReLU"],},
 #     ],
 # )
-pruner = LotteryTicketPruner(
-    model,
-    [{"prune_iterations": pruning_epochs, "sparsity": 0.8, "op_types": ["default"]}],
-    optimizer,
-)
-pruner.compress()
+quantizer.compress()
 
+trainer.run(train_loader, max_epochs=5)
+torch.save(model.state_dict(), "../../data/kw_weights_quantized")
 
-@trainer.on(ignite.engine.Events.EPOCH_COMPLETED)
-def prune(trainer):
-    pruner.update_epoch(trainer.state.epoch)
-
-
-for i in pruner.get_prune_iterations():
-    print("PRUNING ITERATION", i)
-    pruner.prune_iteration_start()
-    trainer.run(train_loader, max_epochs=5)
-
-print("final tuning")
-trainer.run(train_loader, max_epochs=15)
-
-pruner.export_model(
-    model_path="../../data/kw_weights_pruned",
-    mask_path="../../data/kw_weights_pruned_masks",
-)
-apply_compression_results(model, "../../data/kw_weights_pruned_masks")
-
-print("final sparsity", 1 - count_params())
 
 print("Training Data Statistics:")
 compute_stats(model, train_data, id_to_char)
 print()
 print("Testing Data Statistics:")
 compute_stats(model, test_data, id_to_char)
+
+# for m in model.modules():
+#     if not hasattr(m, "name"):
+#         continue
+#     print(m.name)
+#     print(quantizer.layer_scale[m.name])
+#     print(m.module.weight / quantizer.layer_scale[m.name])
